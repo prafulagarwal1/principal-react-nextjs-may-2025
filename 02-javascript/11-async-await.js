@@ -19,41 +19,36 @@ const sum = (x, y) => {
     );
 };
 
-// then(), catch()
-sum(12, 13)
-    .then(
-        (result1) => {
-            console.log(result1);
+const doSomething = async () => {
+    console.log(3);
 
-            return sum(result1, 14);
-        }
-    )
-    .then(
-        (result2) => {
-            console.log(result2);
+    try {
+        const result1 = await sum(12, 13);
+        console.log(result1);
+        const result2 = await sum(result1, 14);
+        console.log(result2);
+        const result3 = await sum(result2, 15);
+        console.log(result3);
 
-            return sum(result2, 15);
-        }
-    )
+        return result3;
+    } catch (error) {
+        console.log(error.message);
+    }
+
+    console.log(4);
+}
+
+console.log(1);
+
+doSomething()
     .then(
-        (result3) => {
-            console.log(result3);
-        }
+        finalResult => console.log(finalResult)
     )
     .catch(
-        (error) => {
-            console.log(error.message);
-        }
-    )
-
-sum(12, 'Thirteen')
-    .then(
-        (result1) => {
-            console.log(result1);
-        }
-    )
-    .catch(
-        (error) => {
-            console.log(error.message);
-        }
+        error => console.log(error.message)
     );
+
+console.log(2);
+
+// nothing else to do...
+// now the execution is resumed from the "await line"

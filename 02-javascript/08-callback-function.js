@@ -15,8 +15,8 @@ const sum = (x, y, callback) => {
 
 console.log(
     sum(
-        12,
-        13,
+        "Twelve",
+        "Thirteen",
         (result) => {
             console.log('callback called');
             console.log('result = ', result);
