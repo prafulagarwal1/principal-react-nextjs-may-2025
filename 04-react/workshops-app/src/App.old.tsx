@@ -1,13 +1,15 @@
-import { Alert, Container } from 'react-bootstrap';
-import { Routes, Route } from 'react-router';
+import { useState } from "react";
+import { Alert } from 'react-bootstrap';
 import Menu from './components/common/Menu/Menu';
 import HomePage from "./app/page";
-import WorkshopsListPage from './app/workshops/page';
-import AddWorkshopPage from './app/workshops/add/page';
 
 import './App.scss';
 
 const App = () => {
+    //   const x = 100; // static data
+    const [ title, setTitle ] = useState('Workshops App'); // dynamic data
+    let [ count, setCount ] = useState(0); // dynamic data -> when the second button is clicked, count has to be changed by calling setCount
+
     return (
         <div>
             <Alert
@@ -27,13 +29,19 @@ const App = () => {
 
             <Menu />
 
-            <Container className="my-5">
-                <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/workshops" element={<WorkshopsListPage />} />
-                    <Route path="/workshops/add" element={<AddWorkshopPage />} />
-                </Routes>
-            </Container>
+            {/* <h1>{title}</h1>
+            <hr />
+
+            <button onClick={() => {
+                setTitle('Workshops Application');
+                // setCount( count + 1 );
+            }}>
+                Change title
+            </button>
+
+            <button onClick={() => setCount( count + 1 )}>
+                You have clicked this button <span>{count}</span> times
+            </button> */}
         </div>
     );
 };
