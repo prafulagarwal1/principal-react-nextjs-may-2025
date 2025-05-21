@@ -4,6 +4,7 @@ import Menu from './components/common/Menu/Menu';
 import HomePage from "./app/page";
 import WorkshopsListPage from './app/workshops/page';
 import AddWorkshopPage from './app/workshops/add/page';
+import NotFoundPage from './app/not-found';
 
 import './App.scss';
 
@@ -32,6 +33,9 @@ const App = () => {
                     <Route path="/" element={<HomePage />} />
                     <Route path="/workshops" element={<WorkshopsListPage />} />
                     <Route path="/workshops/add" element={<AddWorkshopPage />} />
+
+                    {/* Add this route */}
+                    <Route path="*" element={<NotFoundPage />} />
                 </Routes>
             </Container>
         </div>
