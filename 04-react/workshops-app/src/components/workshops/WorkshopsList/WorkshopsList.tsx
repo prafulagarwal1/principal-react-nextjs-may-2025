@@ -17,6 +17,7 @@ const WorkshopsList = () => {
     const [loading, setLoading] = useState(true);
     const [workshops, setWorkshops] = useState<IWorkshop[]>([]);
     const [error, setError] = useState<Error | null>(null);
+
     // const [page, setPage] = useState<number>(1);
 
     const [searchParams, setSearchParams] = useSearchParams();
@@ -62,6 +63,21 @@ const WorkshopsList = () => {
 
     // console.log( 2 );
 
+    const [filterKey, setFilterKey] = useState('');
+    const [filteredWorkshops, setFilteredWorkshops] = useState<IWorkshop[]>([]);
+
+    // side-effect for filtering when filterKey or workshops states change
+    useEffect(
+        () => {
+            setFilteredWorkshops(
+                workshops.filter(
+                    (workshop) => workshop.name.toUpperCase().includes(filterKey.toUpperCase())
+                )
+            );
+        },
+        [workshops, filterKey]
+    );
+
     return (
         <div>
             <h1>List of Workshops</h1>
@@ -75,6 +91,20 @@ const WorkshopsList = () => {
                     disablePrevious={!(loading === false && error === null)}
                     disableNext={!(loading === false && error === null)}
                 />
+            </div>
+
+            <div className="my-3">
+                <input
+                    type="search"
+                    className="form-control"
+                    placeholder="Type to search by name"
+                    value={filterKey}
+                    onChange={(event) => setFilterKey(event.target.value)}
+                />
+                <div>
+                    Workshops whose name has
+                    <span className="text-primary"> {filterKey} </span> are shown.
+                </div>
             </div>
 
             {
@@ -104,7 +134,7 @@ const WorkshopsList = () => {
                 workshops.length !== 0 && (
                     <Row xs={1} md={2} lg={3} xxl={4}>
                         {
-                            workshops.map(
+                            filteredWorkshops.map(
                                 (workshop) => (
                                     <Col key={workshop.id} className="my-3 d-flex">
                                         <Item {...workshop} />
