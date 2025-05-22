@@ -2064,541 +2064,408 @@ const voteForSession = async (sessionId: number, voteType: VoteType) => {
 export { getSessionsForWorkshop, voteForSession };
 ```
 - Create the voting widget component that will be useful for showing votes and providing voting buttons where needed. It takes `votes` as an input, and uses a __callback prop__ (function passed as a prop) events (say `vote`) that is called when the upvote or downvote buttons are clicked. __Callback props are the means for child to parent communication in React__.
-```
-ng g c common/voting-widget
-```
-- In `src/app/common/voting-widget/voting-widget.component.ts`
-```ts
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+- In `src/components/common/VotingWidget/VotingWidget.tsx`
+```tsx
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCaretUp, faCaretDown } from "@fortawesome/free-solid-svg-icons";
+import { VoteType } from '../../../services/sessions';
 
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faCaretUp, faCaretDown } from '@fortawesome/free-solid-svg-icons';
+import './VotingWidget.scss';
 
-@Component({
-    selector: 'app-voting-widget',
-    standalone: true,
-    imports: [FontAwesomeModule],
-    templateUrl: './voting-widget.component.html',
-    styleUrl: './voting-widget.component.scss',
-})
-export class VotingWidgetComponent {
-    icons = {
-        faCaretUp,
-        faCaretDown,
-    };
+export type VoteFunction = ( voteType: VoteType ) => void;
 
-    @Input()
-    votes!: number;
-
-    // The emitted event will pass to the parent how much to change the vote by (+1, -2 etc.)
-    @Output()
-    vote = new EventEmitter<number>();
-
-    emitVote(by: number) {
-        this.vote.emit(by);
-    }
+interface Props {
+    votes: number,
+    vote: VoteFunction
 }
+
+const VotingWidget = ( { votes, vote } : Props ) => {
+    return (
+        <div className="voting-widget">
+            <FontAwesomeIcon
+                icon={faCaretUp}
+                onClick={() => vote('upvote')}
+                className="fa-2x voting-widget-button"
+            />
+            <span className="voting-widget-votes">{ votes }</span>
+            <FontAwesomeIcon
+                icon={faCaretDown}
+                onClick={() => vote('downvote')}
+                className="fa-2x voting-widget-button"
+            />
+        </div>
+    );
+}
+
+export default VotingWidget;
 ```
-- In `src/app/common/voting-widget/voting-widget.component.html`,
-```html
-<fa-icon
-    [icon]="icons.faCaretUp"
-    (click)="emitVote(1)"
-    size="2x"
-    style="color: green; cursor: pointer"
-></fa-icon>
-<span class="upvoteCount">{{ votes }}</span>
-<fa-icon
-    [icon]="icons.faCaretDown"
-    (click)="emitVote(-1)"
-    size="2x"
-    style="color: red; cursor: pointer"
-></fa-icon>
-```
-- In `src/app/common/voting-widget/voting-widget.component.scss`,
+- In `src/components/common/VotingWidget/VotingWidget.scss`,
 ```scss
-:host {
+.voting-widget {
     display: flex;
     flex-direction: column;
     align-items: center;
+
+    .voting-widget-button {
+        color: green;
+        cursor: pointer;
+    }
+
+    .voting-widget-votes {
+        font-size: 2em;
+        margin: 0 1em;
+    }
 }
 ```
-- Use the voting widget component in `src/app/workshops/workshop-details/sessions-list/sessions-list.component.ts`. Pass down `votes` to the widget, and listen for the `vote` event.
-```ts
-import { VotingWidgetComponent } from '../../../common/voting-widget/voting-widget.component';
-import ISession from '../../models/ISession';
-```
-```ts
-imports: [VotingWidgetComponent],
-```
-- In `src/app/workshops/workshop-details/sessions-list/sessions-list.component.html`,
-```html
-<div
-    class="col-1 d-flex flex-column justify-content-center align-items-center"
->
-    <app-voting-widget
-        [votes]="s.upvoteCount"
-        (vote)="updateVote(s, $event)"
-    ></app-voting-widget>
-</div>
-```
-- Handle the `vote` event in `src/app/workshops/workshop-details/sessions-list/sessions-list.component.ts`. Note how we update the votes for the session being operated on. Since this session object is the exact one being used in the HTML (As part of the `sessions` array), Angular's data-binding is able to detect the change and update the UI!
-```ts
-updateVote(session: ISession, by: number) {
-    this.sessionsService
-        .voteForSession(session.id, by === 1 ? 'upvote' : 'downvote')
-        .subscribe({
-            next: (updatedSession) => {
-                session.upvoteCount = updatedSession.upvoteCount;
-            },
-            // @todo handle error
-        });
+- Use the voting widget component in `src/components/workshops/WorkshopDetails/SessionsList/Item/Item.js`. Pass down `votes` to the widget, and listen for the `vote` event. We also make modifications to accept `vote` as a prop from the `SessionsList` component. When a component receives callback props it is a good idea to wrap the component's definition in React's `memo()` function (not to be confused with react's `useMemo()` which serves a different purpose, albeit related to memoization and performance optimization).
+```tsx
+import { memo } from 'react';
+import { Col, Row } from "react-bootstrap";
+
+import VotingWidget, { VoteFunction }  from "../../../../common/VotingWidget/VotingWidget";
+import ISession from "../../../../../models/ISession";
+
+interface Props {
+    session: ISession,
+    vote: VoteFunction
 }
+
+const Item = memo(
+    ( { session, vote } : Props ) => {
+        const { name, speaker, level, abstract, duration, upvoteCount } = session;
+
+        return (
+            <Row>
+                <Col
+                    xs={1}
+                    className="d-flex flex-column justify-content-center align-items-center"
+                >
+                    <VotingWidget
+                        votes={upvoteCount}
+                        vote={vote}
+                    />
+                </Col>
+                <Col xs={11}>
+                    <h3>{{ s.name }}</h3>
+                    <div>by {{ s.speaker }}</div>
+                    <div>{{ s.level }}</div>
+                    <div>{{ s.duration }}</div>
+                    <div>{{ s.abstract }}</div>
+                </Col>
+            </Row>
+        );
+    }
+);
+
+export default Item;
+```
+- Handle the `vote` event in `src/components/workshops/WorkshopDetails/SessionsList/SessionsList.tsx`. Note how we update the votes for the session being operated on. Since this session object is the exact one being used as part of the list iterated in JSX (part of the `sessions` array), React is able to detect the change and update the UI!
+```tsx
+import { useCallback, useEffect, useState } from "react";
+// import { toast } from "react-toastify";
+
+import { getSessionsForWorkshop, voteForSession, VoteType } from "../../../../services/sessions";
+import ISession from "../../../../models/ISession";
+```
+```tsx
+const vote = useCallback(
+    async (
+        sessionId: number,
+        voteType: VoteType
+    ) => {
+        try {
+            const updatedSession = await voteForSession(sessionId, voteType);
+            setSessions(
+                sessions => sessions.map( s => s.id === sessionId ? updatedSession : s )
+            );
+            // toast('You vote for session ' + updatedSession.name +' has been captured');
+            alert('You vote for session ' + updatedSession.name +' has been captured');
+        } catch(error) {
+            // toast((error as Error).message);
+            alert((error as Error).message);
+        }
+    },
+    [voteForSession, setSessions]
+);
+```
+```tsx
+{sessions.map((s, idx) => (
+    <ListGroup.Item key={s.id}>
+        <Item
+            session={s}
+            vote={(voteType) => vote(s.id, voteType)}
+        />
+    </ListGroup.Item>
+))}
 ```
 
 ## Step 27: Using environment files for enabling environment-based settings
 - Environment files help us to use settings for the application based on the environment. We can, for example, have our code work without changes, and comunicate with a local development server in development, and a production server, in a production environment. Angular will take care to use the appropriate settings based on the application build (development/staging/production etc.)
-- In `src/environments/environment.ts`
+- In `.env` (Note that __environment files are located in the root of the project__, and __NOT__ `src`)
 ```ts
-export const environment = {
-    production: false,
-    apiUrl: 'http://localhost:8001',
+REACT_APP_API_URL=http://localhost:8001
+```
+- In `.env.production`
+```ts
+REACT_APP_API_URL=https://workshops-server.onrender.com
+```
 };
 ```
-- In `src/environments/environment.production.ts`
+- Do necessary changes in `src/services/workshops.ts` 
 ```ts
-export const environment = {
-    production: true,
-    apiUrl: 'https://workshops-server.onrender.com',
-};
+const apiUrl = process.env.REACT_APP_API_URL;
 ```
-- Configure Angular CLI (`ng`) to use the appropriate file based on the build (development/staging/production etc.). In the build command configuration for production environment in the file `angular.json`,
-```json
-"outputHashing": "all",
-"fileReplacements": [
-    {
-        "replace": "src/environments/environment.ts",
-        "with": "src/environments/environment.production.ts"
-    }
-]
-```
-- Do necessary changes in `src/app/workshops/workshops.service.ts`
+- In `getWorkshops` use this URL
 ```ts
-import { environment } from '../../environments/environment';
+`${this.apiUrl}/workshops`
 ```
+- In `getWorkshopById` use this URL
 ```ts
-export class WorkshopsService {
-    private apiUrl = environment.apiUrl;
-
-    // rest of code...
-}
+`${apiUrl}/workshops/${workshopId}`
 ```
+- Do necessary changes in `src/services/sessions.ts`
 ```ts
-getWorkshops(page: number = 1) {
-    return this.http.get<IWorkshop[]>(`${this.apiUrl}/workshops`, {
-        params: {
-            _page: page,
-        },
-    });
-}
-
-getWorkshopById(workshopId: number) {
-    return this.http.get<IWorkshop>(
-        `${this.apiUrl}/workshops/${workshopId}`
-    );
-}
+const apiUrl = process.env.REACT_APP_API_URL;
 ```
-- Do necessary changes in `src/app/workshops/sessions.service.ts`
+- In `getSessionsForWorkshop` use this URL
 ```ts
-import { environment } from '../../environments/environment';
+`${apiUrl}/workshops/${workshopId}/sessions`
 ```
+- In `voteForSession` use this URL
 ```ts
-export class SessionsService {
-    private apiUrl = environment.apiUrl;
-
-    // rest of code...
-}
+`${apiUrl}/sessions/${sessionId}/${voteType}`
 ```
-```ts
-getSessionsForWorkshop(workshopId: number) {
-    return this.http.get<ISession[]>(
-        `${this.apiUrl}/workshops/${workshopId}/sessions`
-    );
-}
-
-voteForSession(sessionId: number, voteType: VoteType) {
-    return this.http.put<ISession>(
-        `${this.apiUrl}/sessions/${sessionId}/${voteType}`,
-        null
-    );
-}
-```
-- To test the correct usage of settings in a production environment, add a script in `package.json` `scripts` to start the Angular app frontend server in a production environemt
-```json
-"start:production": "ng serve --configuration production",
-```
-- Start the Angular app in production mode
-```
-npm run start:production
-```
-- Verify from the network tab that the production backend is the one being used in HTTP request now.
+- Create the production build, and serve the app from the build folder. Verify from the network tab that the production backend is the one being used in HTTP requests now.
+    - __Note__: More details to be added to this step.
 
 ## Step 28: Set up a toast message service and container to display toast messages
-- Create a service to hold toast messages to be displayed, and methods to add and remove toasts
-```
-ng g s common/toast
-```
-- In `src/app/common/toast/toast.service.ts`,
-```ts
-import { Injectable } from '@angular/core';
-
-interface IToast {
-    message: string;
-    className: string;
-    duration: number;
-}
-
-@Injectable({
-    providedIn: 'root',
-})
-export class ToastService {
-    // shared data - the list of toast messages
-    private toasts: IToast[] = [];
-
-    constructor() {}
-
-    getToasts() {
-        return this.toasts;
-    }
-    
-    add(toast: IToast) {
-        this.toasts.unshift(toast);
-    }
-    
-    remove(toast: IToast) {
-        // filter() does not modify this.toasts, it only returns a new Array. So we need to reassign the result to this.toasts
-        this.toasts = this.toasts.filter((t) => t !== toast);
-    }
-    
-    clear() {
-        this.toasts = [];
-    }
-}
-```
-- Create an associated toast component
-```
-ng g c common/toast
-```
-- In `src/app/common/toast/toast.component.ts` add the following. We have already used constructor DI many times. Now we see a new way (using `inject()`) that works with functions as well (apart from classes).
-```ts
-import { Component, inject } from '@angular/core';
-import { NgbToastModule } from '@ng-bootstrap/ng-bootstrap';
-import { ToastService } from './toast.service';
-```
-```ts
-imports: [NgbToastModule],
-```
-```ts
-export class ToastComponent {
-    // Angular 17 Introduced this way on service injection
-    public toastService = inject(ToastService);
-}
-```
-- In `src/app/common/toast/toast.component.html`,
-```html
-@for( toast of toastService.getToasts(); track toast ) {
-    <ngb-toast
-        class="mb-3"
-        [class]="toast.className"
-        [autohide]="true"
-        [delay]="toast.duration || 5000"
-        (hidden)="toastService.remove(toast)"
-    >
-        {{ toast.message }}
-    </ngb-toast>
-}
-```
-- In `src/app/common/toast/toast.component.scss`,
-```scss
-:host {
-    position: fixed;
-    top: 50px;
-    right: 0px;
-    padding: 20px;
-    z-index: 1000;
-}
-```
-- Render a toast component instance (that acts as the container for toast messages) in `src/app/app.component.ts`
-```ts
-import { ToastComponent } from './common/toast/toast.component';
-```
-```ts
-imports: [
-    /* existing imports */
-    ToastComponent,
-],
-```
-- In `src/app/app.component.html`
-```html
-<!-- Add this -->
-<app-toast></app-toast>
-
-<app-menu></app-menu>
-```
+- Use built-in React Bootstrap Toast and ToastContainer (difficult to set up but gels with the theme), or a third-party toast component like `react-toastify` (https://www.npmjs.com/package/react-toastify).
+- To be done
 
 ## Step 29: Set up options for editing / deleting a workshop in every workshop list item
-- In `src/app/workshops/workshops-list/item/item.component.ts`,
 ```ts
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
+export default { getWorkshops, getWorkshopById, deleteWorkshopById };
 ```
-```ts
-imports: [
-    /* existing imports */
-    FontAwesomeModule
-],
-```
-```ts
-export class ItemComponent {
-    icons = {
-        faPencil,
-        faTrash,
-    };
+- In `src/components/workshops/WorkshopsList/Item/Item.tsx`,
+```tsx
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faTrash, faPencil } from "@fortawesome/free-regular-svg-icons";
 
-    /* rest of code */
-}
+import { }
 ```
-- In `src/app/workshops/workshops-list/item/item.component.scss`,
+- Within the `Card` component
+```tsx
+<div class="card-action-buttons">
+    <Button
+        variant="info"
+        size="sm"
+        title="Edit this workshop"
+        onClick={() =>{}}
+    >
+        <FontAwesomeIcon
+            icon={faPencil}
+            className="fa-2x"
+        />
+    </Button>
+    <Button
+        variant="danger"
+        size="sm"
+        title="Delete this workshop"
+        onClick={() => {}}
+    >
+        <FontAwesomeIcon
+            icon={faTrash}
+            className="fa-2x"
+        />
+    </Button>
+</div>
+```
+- In `src/components/workshops/WorkshopsList/Item/Item.scss`,
 ```scss
-:host {
-    display: flex;
+.card {
+    /*display: flex;*/
     position: relative;
-}
 
-.card-action-buttons {
-    position: absolute;
-    top: 0px;
-    right: 0px;
-    padding: 16px;
+    .card-action-buttons {
+        position: absolute;
+        top: 0px;
+        right: 0px;
+        padding: 16px;
 
-    .btn-action-button {
-        cursor: pointer;
-        opacity: 0.7;
-        
-        &:hover {
-            opacity: 1;
+        .btn-action-button {
+            cursor: pointer;
+            opacity: 0.7;
+            
+            &:hover {
+                opacity: 1;
+            }
         }
     }
 }
 ```
-- In `src/app/workshops/workshops-list/item/item.component.html`,
-```html
-@if( workshop !== null ) {
-    <div class="card p-3">
-        <div class="card-action-buttons">
-            <button class="me-2 btn btn-info btn-sm btn-action-button" title="Edit this workshop">
-                <fa-icon [icon]="icons.faPencil"></fa-icon>
-            </button>
-            <button class="btn btn-danger btn-sm btn-action-button" title="Delete this workshop">
-                <fa-icon [icon]="icons.faTrash"></fa-icon>
-            </button>
-        </div>
-        
-        <!-- rest of UI... -->
-    </div>
-}
-```
 
 ## Step 30: Deleting a workshop
-- In `src/app/workshops/workshops-list/item/item.component.html`,
-```html
-<button
-    class="btn btn-danger btn-sm"
-    title="Delete this workshop"
-    (click)="onDeleteWorkshop()"
->
-    <fa-icon [icon]="icons.faTrash"></fa-icon>
-</button>
-```
-- In `src/app/workshops/workshops-list/item/item.component.ts`, set up a `delete` event to inform to the parent when user clicks on the delete icon.
+- Add a service method to delete a workshop with a given id in `src/services/workshops.ts`. Note that we use void to indicate an empty-bodied response.
 ```ts
-import { Component, EventEmitter, Input, Output } from '@angular/core';
-```
-```ts
-@Output()
-delete = new EventEmitter();
-
-onDeleteWorkshop() {
-    this.delete.emit();
+deleteWorkshopById(workshopId: number) {
+    return http.delete<void>(`${apiUrl}/workshops/${workshopId}`);
 }
 ```
-- In the parent component `src/app/workshops/workshops-list/workshops-list.component.html`,
-```html
-<app-item [workshop]="workshop" (delete)="deleteWorkshop(workshop)"></app-item>
+- In `src/components/workshops/WorkshopsList/Item/Item.tsx`, set up a callback prop `onDelete` to inform to the parent when user clicks on the delete icon
+```tsx
+interface Props extends IWorkshop {
+    onDelete: () => void
+}
+
+const Item = ({ name, id, imageUrl, location, startDate, endDate, onDelete }: Props) => {
+    // existing code...
+};
 ```
-- In `src/app/workshops/workshops-list/workshops-list.component.ts`
+```tsx
+<Button
+    variant="danger"
+    size="sm"
+    title="Delete this workshop"
+    onClick={onDelete}
+>
+    <FontAwesomeIcon
+        icon={faTrash}
+        className="fa-2x"
+    />
+</Button>
+```
+```
+- In the parent component `src/components/workshops/WorkshopsList/WorkshopsList.tsx`,
+```tsx
+<Item
+    {...workshop} onDelete={() => deleteWorkshop(workshop)}></Item>
+```
+- In `src/components/workshops/WorkshopsList/WorkshopsList.tsx`
 ```ts
-deleteWorkshop(workshop: IWorkshop) {
+const deleteWorkshop = (workshop: IWorkshop) => {
     console.log(workshop);
 }
 ```
 - The workshop is now logged in the console when the user tries to delete the workshop
-- Add a service method to delete a workshop with a given id in `src/app/workshops/workshops.service.ts`. Note that we use void to indicate an empty-bodied response.
+- Use the service method to set up deletion of the workshop.
+- TBD
 ```ts
-deleteWorkshopById(workshopId: number) {
-    return this.http.delete<void>(`${this.apiUrl}/workshops/${workshopId}`);
-}
-```
-- Use this in `src/app/workshops/workshops-list/workshops-list.component.ts` to delete a workshop.
-```ts
-import { ToastService } from '../../common/toast/toast.service';
+import { getWorkshops, deleteWorkshopById } from "../../../services/workshops";
+
+// @todo Import the toast service and make use of it
 ```
 ```ts
-constructor(
-        private workshopsService: WorkshopsService,
-        private router: Router,
-        private activatedRoute: ActivatedRoute,
-        private toastService: ToastService
-) { }
-```
-```ts
-deleteWorkshop(workshop: IWorkshop) {
+const deleteWorkshop = async (workshop: IWorkshop) => {
     console.log(workshop);
 
-    this.workshopsService.deleteWorkshopById(workshop.id).subscribe({
-        next: () => {
-            this.toastService.add({
-                message: `Deleted workshop with id = ${workshop.id}`,
-                className: 'bg-success text-light',
-                duration: 5000,
-            });
-            // update this.workshops
-            this.workshops = this.workshops.filter(
-                (w) => w.id !== workshop.id
-            );
-        },
-        error: () => {
-            this.toastService.add({
-                message: `Could not delete workshop with id = ${workshop.id}`,
-                className: 'bg-danger text-light',
-                duration: 5000,
-            });
-        },
-    });
-}
-```
-- In order to display a confirmation dialog before deletion, we add this in `src/app/workshops/workshops-list/workshops-list.component.ts`. Here, `content` of type `TemplateRef<any>` is a reference to a element node representing the modal dialog (the reference is obtained using a template reference variable). `ng-template` is simply a container element that does not render as an actual HTML element and instead renders the contents within in the browser. Y
-```ts
-import { Component, TemplateRef } from '@angular/core';
-import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
-```
-```ts
-constructor(
-    private workshopsService: WorkshopsService,
-    private router: Router,
-    private activatedRoute: ActivatedRoute,
-    private toastService: ToastService,
-    private modalService: NgbModal
-) { }
-```
-```ts
-open(content: TemplateRef<any>, workshop: IWorkshop) {
-    this.modalService
-        .open(content, { ariaLabelledBy: 'modal-basic-title' })
-        .result.then(
-            (result) => {
-                if (result === 'ok') {
-                    this.deleteWorkshop(workshop);
-                }
-            }
-            // (reason) => { // on modal.dismiss() - eg. when the dalog is simply closed
-            // }
+    try {
+        await deleteWorkshopById(workshop.id);
+
+        // @todo Display a success toast with message `Deleted workshop with id = ${workshop.id}` for 5000 ms
+        
+        // update this.workshops
+        setWorkshops(
+            w => workshops.filter((w) => w.id !== workshop.id)
         );
+    } catch( error ) {
+        // @todo Display aa error toast with message ``Could not delete workshop with id = ${workshop.id}` for 5000 ms
+    }
 }
 ```
-- In `src/app/workshops/workshops-list/workshops-list.component.html`,
-```html
-<app-item
-    [workshop]="workshop"
-    (delete)="open(content, workshop)"
-></app-item>
-```
-```html
-<ng-template #content let-modal>
-    <div class="modal-header">
-        <h4 class="modal-title" id="modal-basic-title">
-            Please confirm deletion!
-        </h4>
-        <button
-            type="button"
-            class="btn-close"
-            aria-label="Close"
-            (click)="modal.dismiss('close')"
-        ></button>
+- In order to display a confirmation dialog before deletion, we add this in `src/components/workshops/WorkshopsList/WorkshopsList.tsx`. To be done following https://react-bootstrap.netlify.app/docs/components/modal 
+```tsx
+<div class="modal-header">
+    <h4 class="modal-title" id="modal-basic-title">
+        Please confirm deletion!
+    </h4>
+    <button
+        type="button"
+        class="btn-close"
+        aria-label="Close"
+        onClick={() => {}}
+    ></button>
+</div>
+<div class="modal-body">
+    <div class="mb-3">
+        You are about to delete a workshop. This action cannot be undone.
+        Are you sure want to proceed?
     </div>
-    <div class="modal-body">
-        <div class="mb-3">
-            You are about to delete a workshop. This action cannot be undone.
-            Are you sure want to proceed?
-        </div>
-        <div>
-            <button class="btn btn-light" (click)="modal.close('cancel')">
-                Cancel
-            </button>
-            <button class="btn btn-danger" (click)="modal.close('ok')">
-                OK
-            </button>
-        </div>
+    <div>
+        <button class="btn btn-light" onClick={() => {}}>
+            Cancel
+        </button>
+        <button class="btn btn-danger" onClick={() => {}}>
+            OK
+        </button>
     </div>
-</ng-template>
+</div>
 ```
+
 
 ## Step 31: Create the form to add a session
-- In `src/app/workshops/workshop-details/add-session/add-session.component.html`,
-```html
-<div class="d-flex justify-content-between align-items-center">
-    <h2 class="my-3">Add a session</h2>
-    <button class="btn btn-primary" id="list-sessions">List of sessions</button>
+- In `src/components/workshops/WorkshopDetails/AddSession/AddSession.tsx`
+```tsx
+<div>
+    <h1 className="d-flex justify-content-between align-items-center">
+        Add a Session
+        <Link to=".." className="btn btn-primary">List of sessions</Link>
+    </h1>
+
+    <hr />
+
+    <Form>
+        <Form.Group className="mb-4" controlId="sequenceId">
+            <Form.Label>Sequence ID</Form.Label>
+            <Form.Control
+                type="number"
+                placeholder="The Sequence ID of the session (eg. 1, 2, 3...)"
+            />
+        </Form.Group>
+        <Form.Group className="mb-4" controlId="name">
+            <Form.Label>Name</Form.Label>
+            <Form.Control
+                type="text"
+                placeholder="Name of the session, Eg. Introduction to Programming"
+            />
+        </Form.Group>
+        <Form.Group className="mb-4" controlId="speaker">
+            <Form.Label>Speaker</Form.Label>
+            <Form.Control
+                type="text"
+                placeholder="Name of the speaker(s). Eg. John Doe, Jane Doe"
+            />
+        </Form.Group>
+        <Form.Group className="mb-4" controlId="duration">
+            <Form.Label>Duration</Form.Label>
+            <Form.Control
+                type="text"
+                placeholder="The duration of the session in hours (eg. 2.5)"
+            />
+        </Form.Group>
+        <Form.Group className="mb-4" controlId="level">
+            <Form.Label>Level</Form.Label>
+            <Form.Select
+                aria-label="Level"
+            >
+                <option disabled>-- Select the level --</option>
+                <option value="Basic">Basic</option>
+                <option value="Intermediate">Intermediate</option>
+                <option value="Advanced">Advanced</option>
+            </Form.Select>
+        </Form.Group>
+        <Form.Group className="mb-4" controlId="abstract">
+            <Form.Label>Abstract</Form.Label>
+            <Form.Control
+                as="textarea"
+                rows={3}
+            />
+        </Form.Group>
+
+        <Button type="submit">Add a session</Button>
+    </Form>
 </div>
-
-<hr />
-
-<form id="add-session-form">
-    <div class="mb-3">
-        <label for="sequenceId" class="form-label">Sequence ID</label>
-        <input type="text" class="form-control" id="sequenceId" />
-        <div class="error-message"></div>
-    </div>
-    <div class="mb-3">
-        <label for="name" class="form-label">Name</label>
-        <input type="text" class="form-control" id="name" />
-    </div>
-    <div class="mb-3">
-        <label for="speaker" class="form-label">Speaker</label>
-        <input type="text" class="form-control" id="speaker" />
-    </div>
-    <div class="mb-3">
-        <label for="duration" class="form-label">Duration</label>
-        <input type="number" class="form-control" id="duration" />
-    </div>
-    <div class="mb-3">
-        <label for="level" class="form-label">Level</label>
-        <select class="form-select" id="level">
-            <option value="Basic">Basic</option>
-            <option value="Intermediate">Intermediate</option>
-            <option value="Advanced">Advanced</option>
-        </select>
-    </div>
-    <div class="mb-3">
-        <label for="abstract" class="form-label">Abstract</label>
-        <textarea class="form-control" id="abstract" rows="3"></textarea>
-    </div>
-    <div class="mb-3">
-        <button class="btn btn-primary">Add session</button>
-    </div>
-</form>
 ```
-- In `src/styles.scss`, add this. We add it to global styles as similar error messages will need to be displayed in other forms in the app.
+- In `src/App.scss`, add this. We add it to global styles as similar error messages will need to be displayed in other forms in the app.
 ```scss
 .error-message {
     color: crimson;
