@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { Alert, Button, Col, Card, Row } from "react-bootstrap";
+import { Button, Col, Card, Row } from "react-bootstrap";
 import { Link } from "react-router";
 
 import LoadingSpinner from "../../common/LoadingSpinner/LoadingSpinner";
 import ErrorAlert from "../../common/ErrorAlert/ErrorAlert";
+
+import Item from "./Item/Item";
 
 import { getWorkshops } from "../../../services/workshops";
 import IWorkshop from "../../../models/IWorkshop";
@@ -69,11 +71,17 @@ const WorkshopsList = () => {
             }
             {
                 workshops.length !== 0 && (
-                    workshops.map(
-                        (workshop) => (
-                            <div key={workshop.id}>{workshop.name}</div>
-                        )
-                    )
+                    <Row xs={1} md={3} lg={4}>
+                        {
+                            workshops.map(
+                                (workshop) => (
+                                    <Col key={workshop.id} className="my-3 d-flex">
+                                        <Item {...workshop} />
+                                    </Col>
+                                )
+                            )
+                        }
+                    </Row>
                 )
             }
         </div>
