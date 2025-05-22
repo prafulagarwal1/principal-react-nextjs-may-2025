@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
-import { Alert, Button, Col, Card, Row, Spinner } from "react-bootstrap";
+import { Alert, Button, Col, Card, Row } from "react-bootstrap";
 import { Link } from "react-router";
+
+import LoadingSpinner from "../../common/LoadingSpinner/LoadingSpinner";
+import ErrorAlert from "../../common/ErrorAlert/ErrorAlert";
 
 import { getWorkshops } from "../../../services/workshops";
 import IWorkshop from "../../../models/IWorkshop";
@@ -10,7 +13,6 @@ const WorkshopsList = () => {
     const [loading, setLoading] = useState(true);
     const [workshops, setWorkshops] = useState<IWorkshop[]>([]);
     const [error, setError] = useState<Error | null>(null);
-
 
     useEffect(
         () => {
@@ -45,11 +47,7 @@ const WorkshopsList = () => {
             {
                 /* if..else like behavior using ? : */
                 loading ? (
-                    <div className="text-center">
-                        <Spinner animation="border" role="status">
-                            <span className="visually-hidden">Loading...</span>
-                        </Spinner>
-                    </div>
+                    <LoadingSpinner />
                 ) : (
                     <div>Completed loading</div>
                 )
@@ -58,7 +56,7 @@ const WorkshopsList = () => {
             {
                 /* if like behavior using && */
                 loading === false && error !== null && (
-                    <Alert variant="danger">{error.message}</Alert>
+                    <ErrorAlert err={error} />
                 )
             }
 
