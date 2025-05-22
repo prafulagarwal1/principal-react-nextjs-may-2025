@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button, Col, Card, Row } from "react-bootstrap";
-import { Link } from "react-router";
+import { useSearchParams } from "react-router";
+
 
 import LoadingSpinner from "../../common/LoadingSpinner/LoadingSpinner";
 import ErrorAlert from "../../common/ErrorAlert/ErrorAlert";
@@ -16,7 +17,10 @@ const WorkshopsList = () => {
     const [loading, setLoading] = useState(true);
     const [workshops, setWorkshops] = useState<IWorkshop[]>([]);
     const [error, setError] = useState<Error | null>(null);
-    const [page, setPage] = useState<number>(1);
+    // const [page, setPage] = useState<number>(1);
+
+    const [searchParams, setSearchParams] = useSearchParams();
+    const page = +(searchParams.get("page") || "1"); // Default to page 1
 
     useEffect(
         () => {
@@ -47,11 +51,13 @@ const WorkshopsList = () => {
         }
 
         // when the new state depends on the current state, we use the function form of the setter
-        setPage(p => p - 1);
+        // setPage(p => p - 1);
+        setSearchParams({ page: '' + newPage });
     };
 
     const next = (newPage: number) => {
-        setPage((p) => p + 1);
+        // setPage((p) => p + 1);
+        setSearchParams({ page: '' + newPage });
     };
 
     // console.log( 2 );
