@@ -15,6 +15,7 @@ const WorkshopsList = () => {
     const [loading, setLoading] = useState(true);
     const [workshops, setWorkshops] = useState<IWorkshop[]>([]);
     const [error, setError] = useState<Error | null>(null);
+    const [page, setPage] = useState<number>(1);
 
     useEffect(
         () => {
@@ -23,7 +24,7 @@ const WorkshopsList = () => {
                 setLoading( true );
 
                 try {
-                    const workshops = await getWorkshops();
+                    const workshops = await getWorkshops(page);
                     console.log(workshops);
 
                     setWorkshops(workshops);
@@ -36,8 +37,21 @@ const WorkshopsList = () => {
 
             helper();
         },
-        []
+        [ page ]
     );
+
+    const previous = (newPage: number) => {
+        if (page <= 1) {
+            return;
+        }
+
+        // when the new state depends on the current state, we use the function form of the setter
+        setPage(p => p - 1);
+    };
+
+    const next = (newPage: number) => {
+        setPage((p) => p + 1);
+    };
 
     // console.log( 2 );
 
@@ -45,6 +59,29 @@ const WorkshopsList = () => {
         <div>
             <h1>List of Workshops</h1>
             <hr />
+
+            <div>
+                <Button
+                    variant="primary"
+                    size="sm"
+                    disabled={
+                        !(loading === false && error === null) || page === 1
+                    }
+                    onClick={(event) => previous(page - 1)}
+                    className="me-2"
+                >
+                    Previous
+                </Button>
+                <Button
+                    variant="primary"
+                    size="sm"
+                    disabled={!(loading === false && error === null)}
+                    onClick={() => next(page + 1)}
+                >
+                    Next
+                </Button>
+                <div>You are viewing page {page}</div>
+            </div>
 
             {
                 /* if..else like behavior using ? : */
