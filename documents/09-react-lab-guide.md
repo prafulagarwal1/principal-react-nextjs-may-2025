@@ -2159,7 +2159,7 @@ const Item = memo(
 
 export default Item;
 ```
-- Handle the `vote` event in `src/components/workshops/WorkshopDetails/SessionsList/SessionsList.tsx`. Note how we update the votes for the session being operated on. Since this session object is the exact one being used as part of the list iterated in JSX (part of the `sessions` array), React is able to detect the change and update the UI!
+- Handle the `vote` event in `src/components/workshops/WorkshopDetails/SessionsList/SessionsList.tsx`. Note how we update the votes for the session being operated on. Since this session object is the exact one being used as part of the list iterated in JSX (part of the `sessions` array), React is able to detect the change and update the UI! When a child component definition is wrapped in React's `memo()` function, the callback prop passed from the parent component is to be wrapped in React's `useCallback()`. The dependencies array of `useCallback` ensures that the callback function is recreated only when one of the dependencies of the function changes. This prevents a new callback from being created on every render of the parent, thus ensuring the child component that receives the callback, does not receive a new one every time and re-render unnecessarily (since it is wrapped in `memo`).
 ```tsx
 import { useCallback, useEffect, useState } from "react";
 // import { toast } from "react-toastify";
