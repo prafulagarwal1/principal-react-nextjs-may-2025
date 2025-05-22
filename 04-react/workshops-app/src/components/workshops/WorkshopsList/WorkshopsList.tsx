@@ -4,6 +4,7 @@ import { Link } from "react-router";
 
 import LoadingSpinner from "../../common/LoadingSpinner/LoadingSpinner";
 import ErrorAlert from "../../common/ErrorAlert/ErrorAlert";
+import Pagination from "../../common/Pagination/Pagination";
 
 import Item from "./Item/Item";
 
@@ -61,26 +62,13 @@ const WorkshopsList = () => {
             <hr />
 
             <div>
-                <Button
-                    variant="primary"
-                    size="sm"
-                    disabled={
-                        !(loading === false && error === null) || page === 1
-                    }
-                    onClick={(event) => previous(page - 1)}
-                    className="me-2"
-                >
-                    Previous
-                </Button>
-                <Button
-                    variant="primary"
-                    size="sm"
-                    disabled={!(loading === false && error === null)}
-                    onClick={() => next(page + 1)}
-                >
-                    Next
-                </Button>
-                <div>You are viewing page {page}</div>
+                <Pagination
+                    page={page}
+                    onPrevious={previous}
+                    onNext={next}
+                    disablePrevious={!(loading === false && error === null)}
+                    disableNext={!(loading === false && error === null)}
+                />
             </div>
 
             {
