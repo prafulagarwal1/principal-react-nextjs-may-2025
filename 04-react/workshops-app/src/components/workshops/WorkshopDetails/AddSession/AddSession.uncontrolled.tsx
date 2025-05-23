@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useRef, FormEvent } from 'react';
 import { Button, Form } from "react-bootstrap";
 import { Link } from "react-router-dom";
 
@@ -9,33 +9,41 @@ interface Props {
 }
 
 const AddSession = ( { id } : Props) => {
-    const [sequenceId, setSequenceId] = useState('1');
-    const [name, setName] = useState('');
-    const [speaker, setSpeaker] = useState('');
-    const [duration, setDuration] = useState('');
-    const [level, setLevel] = useState('Basic');
-    const [abstract, setAbstract] = useState('');
+    const sequenceIdRef = useRef<HTMLInputElement>(null); // { current: domNodeReference }
+    const nameRef = useRef<HTMLInputElement>(null);
+    const speakerRef = useRef<HTMLInputElement>(null);
+    const durationRef = useRef<HTMLInputElement>(null);
+    const levelRef = useRef<HTMLSelectElement>(null);
+    const abstractRef = useRef<HTMLTextAreaElement>(null);
 
     const addSession = (event : FormEvent) => {
         event.preventDefault();
 
-        const session = {
-            workshopId: id,
-            upvoteCount: 0,
-            sequenceId: +sequenceId,
-            // name: name,
-            name,
-            speaker,
-            duration: +duration,
-            level: level as Level,
-            abstract,
-        };
+        if(
+            sequenceIdRef.current !== null &&
+            nameRef.current !== null &&
+            speakerRef.current !== null &&
+            durationRef.current !== null &&
+            levelRef.current !== null &&
+            abstractRef.current !== null
+        ) {
+            const session = {
+                workshopId: id,
+                upvoteCount: 0,
+                sequenceId: +sequenceIdRef.current.value,
+                name: nameRef.current.value,
+                speaker: speakerRef.current.value,
+                duration: +durationRef.current.value,
+                level: levelRef.current.value as Level,
+                abstract: abstractRef.current.value
+            };
 
-        console.log( session );
+            console.log( session );
 
-        // You can do validation here, and submit the form if valid
-        // This is discussed in the following steps
-        // @todo
+            // You can do validation here, and submit the form if valid
+            // This is discussed in the following steps
+            // @todo
+        }
     };
 
     return (
@@ -53,8 +61,7 @@ const AddSession = ( { id } : Props) => {
                     <Form.Control
                         type="number"
                         placeholder="The Sequence ID of the session (eg. 1, 2, 3...)"
-                        value={sequenceId}
-                        onChange={(event) => setSequenceId(event.target.value)}
+                        ref={sequenceIdRef}
                     />
                 </Form.Group>
                 <Form.Group className="mb-4" controlId="name">
@@ -62,8 +69,7 @@ const AddSession = ( { id } : Props) => {
                     <Form.Control
                         type="text"
                         placeholder="Name of the session, Eg. Introduction to Programming"
-                        value={name}
-                        onChange={(event) => setName(event.target.value)}
+                        ref={nameRef}
                     />
                 </Form.Group>
                 <Form.Group className="mb-4" controlId="speaker">
@@ -71,8 +77,7 @@ const AddSession = ( { id } : Props) => {
                     <Form.Control
                         type="text"
                         placeholder="Name of the speaker(s). Eg. John Doe, Jane Doe"
-                        value={speaker}
-                        onChange={(event) => setSpeaker(event.target.value)}
+                        ref={speakerRef}
                     />
                 </Form.Group>
                 <Form.Group className="mb-4" controlId="duration">
@@ -80,16 +85,14 @@ const AddSession = ( { id } : Props) => {
                     <Form.Control
                         type="text"
                         placeholder="The duration of the session in hours (eg. 2.5)"
-                        value={duration}
-                        onChange={(event) => setDuration(event.target.value)}
+                        ref={durationRef}
                     />
                 </Form.Group>
                 <Form.Group className="mb-4" controlId="level">
                     <Form.Label>Level</Form.Label>
                     <Form.Select
                         aria-label="Level"
-                        value={level}
-                        onChange={(event) => setLevel(event.target.value)}
+                        ref={levelRef}
                     >
                         <option disabled>-- Select the level --</option>
                         <option value="Basic">Basic</option>
@@ -102,8 +105,7 @@ const AddSession = ( { id } : Props) => {
                     <Form.Control
                         as="textarea"
                         rows={3}
-                        value={abstract}
-                        onChange={(event) => setAbstract(event.target.value)}
+                        ref={abstractRef}
                     />
                 </Form.Group>
 

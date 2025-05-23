@@ -2666,7 +2666,7 @@ const AddSession = ({ id }: Props) => {
     const [name, setName] = useState('');
     const [speaker, setSpeaker] = useState('');
     const [duration, setDuration] = useState('');
-    const [level, setLevel] = useState('');
+    const [level, setLevel] = useState('Basic');
     const [abstract, setAbstract] = useState('');
 
     const addSession = async (event : FormEvent) => {
