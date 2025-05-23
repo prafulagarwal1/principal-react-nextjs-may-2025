@@ -2178,10 +2178,8 @@ const vote = useCallback(
             setSessions(
                 sessions => sessions.map( s => s.id === sessionId ? updatedSession : s )
             );
-            // toast('You vote for session ' + updatedSession.name +' has been captured');
             alert('You vote for session ' + updatedSession.name +' has been captured');
         } catch(error) {
-            // toast((error as Error).message);
             alert((error as Error).message);
         }
     },
@@ -2199,7 +2197,49 @@ const vote = useCallback(
 ))}
 ```
 
-## Step 27: Using environment files for enabling environment-based settings
+## Step 27: Set up a toast message service and container to display toast messages
+- Toast notifications are a non-intrusive way to display short-lived messages. There are many third-party libraries for this. While React Bootstrap does have its own [Toast and ToastContainer components](https://react-bootstrap.netlify.app/docs/components/toasts), it is not too easy to work with (but gels in with the Bootstrap theme). We use a simpler library for this purpose - [`react-toastify`](https://fkhadra.github.io/react-toastify/introduction/).
+- First install the library
+```sh
+npm i react-toastify
+```
+- In `src/App.tsx` include a container for toast messages. This is positioned to appear on the top right corner in the application.
+```tsx
+import { ToastContainer } from 'react-toastify';
+```
+```tsx
+return (
+    <>
+        {/* rest of UI code...*/}
+        <ToastContainer
+            position="top-right"
+            autoClose={5000}
+        />
+    </>
+)
+```
+- You can now use a call to `toast()` in place of `alert()` we used earlier. For example, in `src/components/workshops/WorkshopDetails/SessionsList/SessionsList.tsx`
+```tsx
+const vote = useCallback(
+    async (
+        sessionId: number,
+        voteType: VoteType
+    ) => {
+        try {
+            const updatedSession = await voteForSession(sessionId, voteType);
+            setSessions(
+                sessions => sessions.map( s => s.id === sessionId ? updatedSession : s )
+            );
+            toast.success('You vote for session ' + updatedSession.name +' has been captured');
+        } catch(error) {
+            toast.error((error as Error).message);
+        }
+    },
+    [voteForSession, setSessions]
+);
+```
+
+## Step 28: Using environment files for enabling environment-based settings
 - Environment files help us to use settings for the application based on the environment. We can, for example, have our code work without changes, and comunicate with a local development server in development, and a production server, in a production environment. Angular will take care to use the appropriate settings based on the application build (development/staging/production etc.)
 - In `.env` (Note that __environment files are located in the root of the project__, and __NOT__ `src`)
 ```ts
@@ -2238,10 +2278,6 @@ const apiUrl = process.env.REACT_APP_API_URL;
 - Create the production build, and serve the app from the build folder. Verify from the network tab that the production backend is the one being used in HTTP requests now.
     - __Note__: More details to be added to this step.
 
-## Step 28: Set up a toast message service and container to display toast messages
-- Use built-in React Bootstrap Toast and ToastContainer (difficult to set up but gels with the theme), or a third-party toast component like `react-toastify` (https://www.npmjs.com/package/react-toastify).
-- To be done
-
 ## Step 29: Set up options for editing / deleting a workshop in every workshop list item
 ```ts
 export default { getWorkshops, getWorkshopById, deleteWorkshopById };
@@ -2250,8 +2286,6 @@ export default { getWorkshops, getWorkshopById, deleteWorkshopById };
 ```tsx
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash, faPencil } from "@fortawesome/free-regular-svg-icons";
-
-import { }
 ```
 - Within the `Card` component
 ```tsx
@@ -2401,9 +2435,12 @@ const deleteWorkshop = async (workshop: IWorkshop) => {
 </div>
 ```
 
-
 ## Step 31: Create the form to add a session
 - In `src/components/workshops/WorkshopDetails/AddSession/AddSession.tsx`
+```tsx
+import { Button, Form } from "react-bootstrap";
+import { Link } from "react-router-dom";
+```
 ```tsx
 <div>
     <h1 className="d-flex justify-content-between align-items-center">
@@ -2473,975 +2510,672 @@ const deleteWorkshop = async (workshop: IWorkshop) => {
 }
 ```
 
-## Step 32: Validation using template-driven forms approach
-- There are 2 ways of working with forms in Angular
-    - Template-driven - for simple forms, simple form handling and simple validations
-    - Reactive
-- We start with the template-driven approach.
-- __Reference__: https://angular.dev/guide/forms/template-driven-forms
-- In `src/app/workshops/workshop-details/add-session/add-session.component.ts` add the following. `FormsModule` provides `NgModel` directive and JsonPipe is used for displaying JavaScript objects in the UI (used generally for debugging purposes).
-```ts
-import { FormsModule } from '@angular/forms';
-import { JsonPipe } from '@angular/common';
-```
-```ts
-imports: [FormsModule, JsonPipe],
-```
-- Do the following changes in `src/app/workshops/workshop-details/add-session/add-session.component.html`. Once we add the `ngModel` directive to an input, Angular maintains an `NgModel` object that holds the user input, the validity status (based on attributes like `required`, `pattern`, `min`, `max` etc. that we set on the input), the touched, dirty status etc. `#var` set on a DOM element is called a template reference variable. The template reference variable by default refers to the DOM node. Set it to `ngModel` to get a reference to the `NgModel` object instead.
-```html
-<input
-    type="text"
-    class="form-control"
-    id="sequenceId"
-    name="sequenceId"
-    required
-    pattern="\d+"
-    ngModel
-    #sequenceId="ngModel"
-    autocomplete="off"
-/>
-<!-- Note how the JSON pipe is used for inspecting objects and thus useful for debugging! -->
-{{ sequenceId.errors | json }}
-{{ sequenceId.value }}
-<div>{{ "sequenceId.invalid = " + sequenceId.invalid }}</div>
-<div>{{ "sequenceId.valid = " + sequenceId.valid }}</div>
-<div>{{ "sequenceId.dirty =" + sequenceId.dirty }}</div>
-<div>{{ "sequenceId.touched =" + sequenceId.touched }}</div>
-@if( sequenceId.invalid && ( sequenceId.touched || sequenceId.dirty ) && sequenceId.errors ) {
-    <div class="error-message">
-        There is some error
-    </div>
+## Step 32: Reading user inputs using uncontrolled components approach
+- There are 2 ways to extract and keep track of user inputs in a form in React
+    - Uncontrolled components - The browser DOM maintains and controls the input state (value that the user filled in the input). This approach is simple, but we do not have much control over the input through the application. It is suitable for simple forms with few inputs. It can also be used for really large forms (hundreds of inputs), where performance is a key consideration.
+    - Controlled components - React keeps track of and maintains the input state. This makes it easy to keep track of, control the input values, and share the user input state with other parts of the application if needed. This is the preferred approach. However for really large forms (hundreds of inputs), where performance is a key consideration, it may not be suitable as the component with the form re-renders when state of any input (value /cerror) changes, resulting in many re-renders.
+- In this step we use the uncontrolled components approach.
+- In `src/components/workshops/WorkshopDetails/AddSession/AddSession.tsx`
+```tsx
+import { FormEvent, useRef } from 'react';
+import { Button, Form } from "react-bootstrap";
+import { Link } from "react-router-dom";
+import { toast } from 'react-toastify';
+
+import { Level } from '../../../../models/ISession';
+
+interface Props {
+    id: number;
 }
-```
-```html
-<input type="text" class="form-control" id="name" required />
-```
-```html
-<input type="text" class="form-control" id="speaker" required />
-```
-```html
-<input type="number" class="form-control" id="duration" required />
-```
-```html
-<select class="form-select" id="level" required>...<select>
-```
-```html
-<textarea
-    class="form-control"
-    id="abstract"
-    rows="3"
-    required
-></textarea>
-```
-- __EXERCISE__: Set up error handling for rest of the inputs as well.
-- We now display error messages based on the type of error that occured.
-```html
-@if( sequenceId.invalid && ( sequenceId.touched || sequenceId.dirty ) && sequenceId.errors ) {
-    <div class="error-message">
-        @if(sequenceId.errors['required']) {
-            <div>This is required</div>
-        } @if(sequenceId.errors['pattern']) {
-            <div>Provide a number</div>
+
+const AddSession = ({ id }: Props) => {
+    console.log( 'render' );
+
+    const sequenceIdRef = useRef<HTMLInputElement>(null); // { current: domNodeOfSequenceIdInput }
+    const nameRef = useRef<HTMLInputElement>(null);
+    const speakerRef = useRef<HTMLInputElement>(null);
+    const durationRef = useRef<HTMLInputElement>(null);
+    const levelRef = useRef<HTMLSelectElement>(null);
+    const abstractRef = useRef<HTMLTextAreaElement>(null);
+
+    const addSession = async (event : FormEvent) => {
+        event.preventDefault();
+
+        if(
+            sequenceIdRef.current !== null &&
+            nameRef.current !== null &&
+            speakerRef.current !== null &&
+            durationRef.current !== null &&
+            levelRef.current !== null &&
+            abstractRef.current !== null
+        ) {
+            const session = {
+                workshopId: id,
+                upvoteCount: 0,
+                sequenceId: +sequenceIdRef.current.value,
+                name: nameRef.current.value,
+                speaker: speakerRef.current.value,
+                duration: +durationRef.current.value,
+                level: levelRef.current.value as Level,
+                abstract: abstractRef.current.value
+            };
+
+            console.log( session );
+
+            // You can do validation here, and submit the form if valid
+            // This is discussed in the following steps
+            // @todo
         }
-    </div>
-}
-```
-```html
-<input
-    type="text"
-    class="form-control"
-    id="name"
-    name="name"
-    required
-    pattern="[A-Z][A-Za-z ]+"
-    ngModel
-    #name="ngModel"
-/>
-@if( name.invalid && ( name.touched || name.dirty ) && name.errors ) {
-    <div class="error-message">
-        @if(name.errors['required']) {
-            <div>This is required</div>
-        } @if(name.errors['pattern']) {
-            <div>Provide a valid name (only letters and spaces)</div>
-        }
-    </div>
-}
-```
-```html
-<input
-    type="text"
-    class="form-control"
-    id="speaker"
-    name="speaker"
-    required
-    pattern="[A-Z][A-Za-z ]+(,[A-Z ][A-Za-z ]+)*"
-    ngModel
-    #speaker="ngModel"
-/>
-@if( speaker.invalid && ( speaker.touched || speaker.dirty ) && speaker.errors ) {
-    <div class="error-message">
-        @if(speaker.errors['required']) {
-            <div>This is required</div>
-        } @if(speaker.errors['pattern']) {
-            <div>
-                Provide valid names (only letters and spaces for names, and separate names by commas)
-            </div>
-        }
-    </div>
-}
-```
-```html
-<input
-    type="number"
-    class="form-control"
-    id="duration"
-    name="duration"
-    required
-    min="0.5"
-    max="10"
-    ngModel
-    #duration="ngModel"
-/>
-@if( duration.invalid && ( duration.touched || duration.dirty ) && duration.errors ) {
-    <div class="error-message">
-        @if(duration.errors['required']) {
-            <div>This is required</div>
-        } @if(duration.errors['min']) {
-            <div>Duration is minimum 0.5</div>
-        } @if(duration.errors['max']) {
-            <div>Duration is maximum 10</div>
-        }
-    </div>
-}
-```
-```html
-<select
-    class="form-select"
-    id="level"
-    name="level"
-    required
-    ngModel
-    #level="ngModel"
->
-    ...
-<select>
-@if( level.invalid && ( level.touched || level.dirty ) && level.errors ) {
-    <div class="error-message">
-        @if(level.errors['required']) {
-        <div>This is required</div>
-        }
-    </div>
-}
-```
-```html
-<textarea
-    class="form-control"
-    id="abstract"
-    name="abstract"
-    rows="3"
-    required
-    minlength="20"
-    ngModel
-    #abstract="ngModel"
-></textarea>
-@if( abstract.invalid && ( abstract.touched || abstract.dirty ) && abstract.errors ) {
-    <div class="error-message">
-        @if(abstract.errors['required']) {
-            <div>This is required</div>
-        } @if(abstract.errors['minlength']) {
-            <div>Minimum 20 characters needed</div>
-        }
-    </div>
-}
+    };
+
+    return (
+        <div>
+            <h1 className="d-flex justify-content-between align-items-center">
+                Add a Session
+                <Link to=".." className="btn btn-primary">
+                    List of sessions
+                </Link>
+            </h1>
+
+            <hr />
+
+            <Form onSubmit={addSession}>
+                <Form.Group className="mb-4" controlId="sequenceId">
+                    <Form.Label>Sequence ID</Form.Label>
+                    <Form.Control
+                        type="number"
+                        placeholder="The Sequence ID of the session (eg. 1, 2, 3...)"
+                        ref={sequenceIdRef}
+                        defaultValue={1}
+                    />
+                </Form.Group>
+                <Form.Group className="mb-4" controlId="name">
+                    <Form.Label>Name</Form.Label>
+                    <Form.Control
+                        type="text"
+                        placeholder="Name of the session, Eg. Introduction to Programming"
+                        ref={nameRef}
+                    />
+                </Form.Group>
+                <Form.Group className="mb-4" controlId="speaker">
+                    <Form.Label>Speaker</Form.Label>
+                    <Form.Control
+                        type="text"
+                        placeholder="Name of the speaker(s). Eg. John Doe, Jane Doe"
+                        ref={speakerRef}
+                    />
+                </Form.Group>
+                <Form.Group className="mb-4" controlId="duration">
+                    <Form.Label>Duration</Form.Label>
+                    <Form.Control
+                        type="text"
+                        placeholder="The duration of the session in hours (eg. 2.5)"
+                        ref={durationRef}
+                    />
+                </Form.Group>
+                <Form.Group className="mb-4" controlId="level">
+                    <Form.Label>Level</Form.Label>
+                    <Form.Select aria-label="Level" ref={levelRef}>
+                        <option disabled>-- Select the level --</option>
+                        <option value="Basic">Basic</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                    </Form.Select>
+                </Form.Group>
+                <Form.Group className="mb-4" controlId="abstract">
+                    <Form.Label>Abstract</Form.Label>
+                    <Form.Control as="textarea" rows={3} ref={abstractRef} />
+                </Form.Group>
+
+                <Button type="submit">Add a session</Button>
+            </Form>
+        </div>
+    );
+};
+
+export default AddSession;
 ```
 
-## Step 33: Handle form submission and add the session
-- In `src/app/workshops/sessions.service.ts`,
-```ts
-addSession(session: Omit<ISession, 'id'>) {
-    return this.http.post<ISession>(`${this.apiUrl}/sessions`, session, {
-        headers: {
-            'Content-Type': 'application/json',
-        },
-    });
+## Step 33: Reading user inputs using controlled components approach
+- __NOTE__: If you wish, save `src/components/workshops/WorkshopDetails/AddSession/AddSession.tsx` as `src/components/workshops/WorkshopDetails/AddSession/AddSession.uncontrolled.tsx` for reference.
+- In `src/components/workshops/WorkshopDetails/AddSession/AddSession.tsx`
+```tsx
+import { useState, FormEvent } from 'react';
+import { Button, Form } from "react-bootstrap";
+import { Link } from "react-router-dom";
+
+import { Level } from '../../../../models/ISession';
+
+interface Props {
+    id: number;
 }
-```
-- Just like Angular maintains an `NgModel` instance for every input on which the directive is set, it maintains an `NgForm` instance on every form (no need to add any directive to the form though). This has validation and user interaction states for the form (similar to the ones for inputs with `NgModel`). The form is invalid if at least one form input within it, tracked by `NgModel`, is invalid. The form is dirty if at least one input tracked is dirty, etc. We disable form submission if the form is invalid. On submission we call `addSession()` passing it the instance of `NgForm`. In `src/app/workshops/workshop-details/add-session/add-session.component.html`,
-```html
-<form id="add-session-form" #addSessionForm="ngForm" (ngSubmit)="addSession(addSessionForm)">
-    <div>valid = {{ addSessionForm.valid | json }}</div>
-    <div>invalid = {{ addSessionForm.invalid | json }}</div>
-    <div>value = {{ addSessionForm.value | json }}</div>
-    <div>dirty = {{ addSessionForm.dirty | json }}</div>
-    ...
-    <button class="btn btn-primary" [disabled]="addSessionForm.invalid">
-        Add session
-    </button>
-</form>
-```
-- Handle the form submission in `src/app/workshops/workshop-details/add-session/add-session.component.ts`. Note how we need to go the `ActivatedRoute::snapshot.parent` to get the `id` value as this child route is not the same as the parent route (it has `/add-session` extra). Note also how the `Router` service is used for programmatic navigaton (client-side redirection).
-```ts
-import { FormsModule, NgForm } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
 
-import { SessionsService } from '../../sessions.service';
-import ISession from '../../models/ISession';
-```
-```ts
-export class AddSessionComponent {
-    constructor(
-        private activatedRoute: ActivatedRoute,
-        private sessionsService: SessionsService,
-        private router: Router
-    ) {}
+const AddSession = ({ id }: Props) => {
+    console.log( 'render' );
 
-    addSession(addSessionForm: NgForm) {
-        const id = +(this.activatedRoute.snapshot.parent?.paramMap.get(
-            'id'
-        ) as string);
+    const [sequenceId, setSequenceId] = useState('1');
+    const [name, setName] = useState('');
+    const [speaker, setSpeaker] = useState('');
+    const [duration, setDuration] = useState('');
+    const [level, setLevel] = useState('');
+    const [abstract, setAbstract] = useState('');
 
-        const newSession = {
-            ...addSessionForm.value,
+    const addSession = async (event : FormEvent) => {
+        event.preventDefault();
+
+        const session = {
             workshopId: id,
             upvoteCount: 0,
-            sequenceId: +addSessionForm.value.sequenceId,
-            duration: +addSessionForm.value.duration,
-        } as Omit<ISession, 'id'>;
-
-        console.log(newSession);
-        
-        this.sessionsService.addSession(newSession).subscribe({
-            next: (addedSession) => {
-                alert(`Added session with id = ${addedSession.id}`);
-                
-                // You can also use navigateByUrl()
-                this.router.navigate(['/workshops', id]);
-            },
-        });
-    }
-}
-```
-- Fill the form correctly, submit it, and verify that the session in added in the backend.
-
-## Step 34: Use the toast service to display toast after trying to add a session
-- In `src/app/workshops/workshop-details/add-session/add-session.component.ts`
-```ts
-import { ToastService } from '../../../common/toast/toast.service';
-```
-```ts
-constructor(
-    private activatedRoute: ActivatedRoute,
-    private sessionsService: SessionsService,
-    private router: Router,
-    private toastService: ToastService
-) {}
-```
-```ts
-this.sessionsService.addSession(newSession).subscribe({
-    next: (addedSession) => {
-        this.toastService.add({
-            message: `Added session with id = ${addedSession.id}`,
-            className: 'bg-success text-light',
-            duration: 5000,
-        });
-
-        // You can also use navigateByUrl()
-        this.router.navigate(['/workshops', id]);
-    },
-    error: (error) => {
-        this.toastService.add({
-            message: `Unable to add the session - ${error.message}`,
-            className: 'bg-danger text-light',
-            duration: 5000,
-        });
-    },
-});
-```
-
-## Step 35: Handle form validation to add the session using the reactive form approach
-- __Note__: You can take a backup copy of `src/app/workshops/workshop-details/add-session` as `src/app/workshops/workshop-details/add-session-template-driven` (for example).
-- In `src/app/workshops/workshop-details/add-session/add-session.component.ts` create the `FormGroup` with `FormControl`s for each tracked input. Define initial value for the inputs and validations. The ReactiveFormModule provides a completely different set of directives to be used in the HTML template (`formGroup`, `formControl`, `formControlName`, `formArrayName` etc.)
-- __Reference__: https://angular.dev/guide/forms/reactive-forms
-```ts
-import {
-    ReactiveFormsModule,
-    NgForm,
-    FormGroup,
-    FormControl,
-    Validators,
-} from '@angular/forms';
-```
-```ts
-imports: [
-    /* existing imports */
-    ReactiveFormsModule
-],
-```
-```ts
-export class AddSessionComponent {
-    addSessionForm = new FormGroup({
-        sequenceId: new FormControl([
-            '', // initial value of the input
-            [
-                // the list of validators
-                Validators.required,
-                Validators.pattern('\\d+'),
-            ],
-        ]),
-        name: new FormControl([
-            '',
-            [Validators.required, Validators.pattern('[A-Z][A-Za-z ]+')],
-        ]),
-        speaker: new FormControl([
-            '',
-            [
-                Validators.required,
-                Validators.pattern('[A-Z][A-Za-z ]+(,[A-Z ][A-Za-z ]+)*'),
-            ],
-        ]),
-        duration: new FormControl([
-            '',
-            [Validators.required, Validators.min(0.5), Validators.max(10)],
-        ]),
-        level: new FormControl(['', [Validators.required]]),
-        abstract: new FormControl([
-            '',
-            [Validators.required, Validators.minLength(2)],
-        ]),
-    });
-    
-    // helper accessor methods
-    get sequenceId() {
-        return this.addSessionForm.get('sequenceId') as FormControl;
-    }
-    
-    get name() {
-        return this.addSessionForm.get('name') as FormControl;
-    }
-    
-    get speaker() {
-        return this.addSessionForm.get('speaker') as FormControl;
-    }
-    
-    get duration() {
-        return this.addSessionForm.get('duration') as FormControl;
-    }
-    
-    get level() {
-        return this.addSessionForm.get('level') as FormControl;
-    }
-    
-    get abstract() {
-        return this.addSessionForm.get('abstract') as FormControl;
-    }
-    
-    constructor(
-        private activatedRoute: ActivatedRoute,
-        private sessionsService: SessionsService,
-        private router: Router,
-        private toastService: ToastService
-    ) {}
-
-    // NOTE: Only the signature of this method changes fron the template-driven code written earlier.
-    addSession() {
-        // existing code as is...
-    }
-}
-```
-- In `src/app/workshops/workshop-details/add-session/add-session.component.html`, make the following changes. In reactive forms approach, we do not use ngModel, and instead use other directives. So we must remove ngModel and the template variable created for every input. Since validations are set up in the model we have set up in the component class, we remove these as well from the inputs.
-```html
-<form
-    id="add-session-form"
-    (ngSubmit)="addSession()"
-    [formGroup]="addSessionForm"
-    novalidate
->
-    ...
-</form>
-```
-```html
-<input
-    type="text"
-    class="form-control"
-    id="sequenceId"
-    name="sequenceId"
-    formControlName="sequenceId"
-    autocomplete="off"
-/>
-```
-- __EXERCISE__: Do similarly for the rest of the inputs as well.
-
-## Step 36: Using Form Builder
-- The Form Builder service provides an alternative to using FormGroup, FormControl classes directly, but with less boilerplate code.
-- In ``,
-```ts
-import { /* existing imports */, FormBuilder } from '@angular/forms';
-```
-```ts
-export class AddSessionComponent {
-    addSessionForm!: FormGroup;
-}
-```
-```ts
-constructor(
-    private activatedRoute: ActivatedRoute,
-    private sessionsService: SessionsService,
-    private router: Router,
-    private toastService: ToastService,
-    private fb: FormBuilder
-) {
-    this.addSessionForm = this.fb.group({
-        sequenceId: [
-            '', // initial value of the input
-            [
-                // the list of validators
-                Validators.required,
-                Validators.pattern('\\d+'),
-            ],
-        ],
-        name: [
-            '',
-            [Validators.required, Validators.pattern('[A-Z][A-Za-z ]+')],
-        ],
-        speaker: [
-            '',
-            [
-                Validators.required,
-                Validators.pattern('[A-Z][A-Za-z ]+(,[A-Z ][A-Za-z ]+)*'),
-            ],
-        ],
-        duration: [
-            '',
-            [Validators.required, Validators.min(0.5), Validators.max(10)],
-        ],
-        level: ['', [Validators.required]],
-        abstract: ['', [Validators.required, Validators.minLength(20)]],
-    });
-}
-```
-
-## Step 37: Setting up custom and cross-field validations
-- In `src/app/workshops/workshop-details/add-session/add-session.component.ts`,
-```ts
-import { /* existing imports */, AbstractControl } from '@angular/forms';
-```
-- Set `durationAndLevel()` as a standalone function (outside the class)
-```ts
-function durationAndLevel(form: AbstractControl) {
-    const durationStr = (form.get('duration') as AbstractControl).value;
-    const duration = +durationStr;
-    const level = (form.get('level') as AbstractControl).value;
-    
-    // if valid -> return null
-    // if invalid -> return an object with the details of the error. Further this object should have the property called `durationAndLevel`
-    if (durationStr === '' || level === '') {
-        return null;
-    }
-    
-    if (level === 'Basic') {
-        return null;
-    }
-    
-    if (level === 'Intermediate') {
-        if (duration >= 2) {
-            return null;
-        }
-        
-        // error
-        return {
-            durationAndLevel: 'Intermediate level session should be at least 2 hours in duration',
+            sequenceId: +sequenceId,
+            name,
+            speaker,
+            duration: +duration,
+            level: level as Level,
+            abstract
         };
-    }
 
-    if (level === 'Advanced') {
-        if (duration >= 3) {
-            return null;
-        }
+        console.log( session );
 
-        // error
-        return {
-            durationAndLevel: 'Advanced level session should be at least 3 hours in duration',
-        };
-    }
+        // You can do validation here, and submit the form if valid
+        // This is discussed in the following steps
+        // @todo
+    };
 
-    return null;
+    return (
+        <div>
+            <h1 className="d-flex justify-content-between align-items-center">
+                Add a Session
+                <Link to=".." className="btn btn-primary">
+                    List of sessions
+                </Link>
+            </h1>
+
+            <hr />
+
+            <Form onSubmit={addSession}>
+                <Form.Group className="mb-4" controlId="sequenceId">
+                    <Form.Label>Sequence ID</Form.Label>
+                    <Form.Control
+                        type="number"
+                        placeholder="The Sequence ID of the session (eg. 1, 2, 3...)"
+                        value={sequenceId}
+                        onChange={(event) => setSequenceId(event.target.value)}
+                    />
+                </Form.Group>
+                <Form.Group className="mb-4" controlId="name">
+                    <Form.Label>Name</Form.Label>
+                    <Form.Control
+                        type="text"
+                        placeholder="Name of the session, Eg. Introduction to Programming"
+                        value={name}
+                        onChange={(event) => setName(event.target.value)}
+                    />
+                </Form.Group>
+                <Form.Group className="mb-4" controlId="speaker">
+                    <Form.Label>Speaker</Form.Label>
+                    <Form.Control
+                        type="text"
+                        placeholder="Name of the speaker(s). Eg. John Doe, Jane Doe"
+                        value={speaker}
+                        onChange={(event) => setSpeaker(event.target.value)}
+                    />
+                </Form.Group>
+                <Form.Group className="mb-4" controlId="duration">
+                    <Form.Label>Duration</Form.Label>
+                    <Form.Control
+                        type="text"
+                        placeholder="The duration of the session in hours (eg. 2.5)"
+                        value={duration}
+                        onChange={(event) => setDuration(event.target.value)}
+                    />
+                </Form.Group>
+                <Form.Group className="mb-4" controlId="level">
+                    <Form.Label>Level</Form.Label>
+                    <Form.Select
+                        aria-label="Level"
+                        value={level}
+                        onChange={(event) => setLevel(event.target.value)}
+                    >
+                        <option disabled>-- Select the level --</option>
+                        <option value="Basic">Basic</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                    </Form.Select>
+                </Form.Group>
+                <Form.Group className="mb-4" controlId="abstract">
+                    <Form.Label>Abstract</Form.Label>
+                    <Form.Control
+                        as="textarea"
+                        rows={3}
+                        value={abstract}
+                        onChange={(event) => setAbstract(event.target.value)}
+                    />
+                </Form.Group>
+
+                <Button type="submit">Add a session</Button>
+            </Form>
+        </div>
+    );
+};
+
+export default AddSession;
+```
+
+## Step 34: Validation using react-hook-form
+- Validating forms using our own logic would be tedious. Additionally we need to manage form states (values, errors, user interaction states like if an input has been touched by the user etc.). There are many libraries we can choose from. A very popular one is [React Hook Form](https://react-hook-form.com/). First install it.
+```sh
+npm i react-hook-form
+```
+- In `src/components/workshops/WorkshopDetails/AddSession/AddSession.tsx`
+```tsx
+import { Button, Form } from "react-bootstrap";
+import { Link, useNavigate } from "react-router-dom";
+import { useForm } from 'react-hook-form';
+
+import { Level } from '../../../../models/ISession';
+
+interface Props {
+    id: number;
 }
-```
-```ts
-this.addSessionForm = this.fb.group(
-    { ... }, 
-    {
-        validators: durationAndLevel,
-    }
-);
-```
-- In `src/app/workshops/workshop-details/add-session/add-session.component.html`,
-```html
-<form ...>
-    <div class="mb-3 error-message">
-        @if( addSessionForm.errors && addSessionForm.errors['durationAndLevel']
-        ) {
-            <div>{{ addSessionForm.errors["durationAndLevel"] }}</div>
-        }
-    </div>
-    <!--  rest of form -->
-</form>
-```
 
-## Step 38: Getting started with a form to add a workshop
-- __EXERCISE__: In `src/app/workshops/add-workshop/add-workshop.component.ts` import `FormGroup`. Do necessary set up for a form to add a new workshop. Group address, city, state under a separate FormGroup as "location". Group the 2 checkboxes under "modes". Set up validations using reactive forms approach. Set the ReactiveFormModule directives in the html file at the appropriate places `[formGroup]="..."` for form, `formControlName="..."` for controls, `formGroupName=""` for "address" and "modes". On submit of the form, log the value of the form. 
-```ts
-import { Component } from '@angular/core';
-import { FormGroup } from '@angular/forms';
-
-@Component({
-    selector: 'app-add-workshop',
-    standalone: true,
-    imports: [],
-    templateUrl: './add-workshop.component.html',
-    styleUrl: './add-workshop.component.scss',
-})
-export class AddWorkshopComponent {
-    addWorkshopForm!: FormGroup;
-
-    constructor() {
-        // EXERCISE: Create a FormGroup variable for the form. Group address, city, state under a separate FormGroup as "location". Group the 2 checkboxes under "modes". On submit of the form. Log the value of the form.
-    }
+interface SessionFormType {
+    sequenceId: number;
+    name: string;
+    speaker: string;
+    duration: number;
+    level: Level;
+    abstract: string;
 }
-```
-- In `src/app/workshops/add-workshop/add-workshop.component.html`,
-```html
-<div>
-    <h1 class="my-3">Add a workshop</h1>
-</div>
 
-<hr />
+const AddSession = ({ id }: Props) => {
+    console.log('render');
 
-<form id="add-workshop-form" novalidate>
-    <div class="mb-3">
-        <label for="name" class="form-label">Name</label>
-        <input
-            type="text"
-            class="form-control"
-            id="name"
-            name="name"
-            autocomplete="off"
-        />
-    </div>
-    <div class="mb-3">
-        <label for="category" class="form-label">Category</label>
-        <select class="form-select" id="category" name="category">
-            <option value="frontend">Frontend</option>
-            <option value="backend">Backend</option>
-            <option value="database">Database</option>
-            <option value="language">Language</option>
-            <option value="mobile">Mobile</option>
-            <option value="devops">Devops</option>
-        </select>
-    </div>
-    <div class="mb-3">
-        <label for="description" class="form-label">Description</label>
-        <textarea
-            class="form-control"
-            id="description"
-            rows="3"
-            name="description"
-        ></textarea>
-    </div>
-    <div class="mb-3">
-        <label for="startDate" class="form-label">Start date</label>
-        <input
-            type="date"
-            class="form-control"
-            id="startDate"
-            name="startDate"
-            autocomplete="off"
-        />
-    </div>
-    <div class="mb-3">
-        <label for="endDate" class="form-label">End date</label>
-        <input
-            type="date"
-            class="form-control"
-            id="endDate"
-            name="endDate"
-            autocomplete="off"
-        />
-    </div>
-    <div class="mb-3">
-        <label for="time" class="form-label">Time</label>
-        <input
-            type="text"
-            class="form-control"
-            id="time"
-            name="time"
-            autocomplete="off"
-        />
-    </div>
-    <div>
-        <div class="mb-3">
-            <label for="address" class="form-label">Address</label>
-            <input
-                type="text"
-                class="form-control"
-                id="address"
-                name="address"
-                autocomplete="off"
-            />
-        </div>
-        <div class="mb-3">
-            <label for="city" class="form-label">City</label>
-            <input
-                type="text"
-                class="form-control"
-                id="city"
-                name="city"
-                autocomplete="off"
-            />
-        </div>
-        <div class="mb-3">
-            <label for="state" class="form-label">State</label>
-            <input
-                type="text"
-                class="form-control"
-                id="state"
-                name="state"
-                autocomplete="off"
-            />
-        </div>
-    </div>
-    <div class="mb-3">
-        <label class="col-lg-2 col-form-label">Modes</label>
-        <div class="col-lg-10">
-            <div>
-                <input type="checkbox" id="inPerson" />
-                <label for="inPerson" class="ms-2">In Person</label>
-            </div>
-            <div>
-                <input type="checkbox" id="online" />
-                <label for="online" class="ms-2">Online</label>
-            </div>
-        </div>
-    </div>
-    <div class="mb-3">
-        <label for="imageUrl" class="form-label">Image URL</label>
-        <input
-            type="url"
-            class="form-control"
-            id="imageUrl"
-            name="imageUrl"
-            autocomplete="off"
-        />
-    </div>
-</form>
-```
-
-## Step 39: Solution to the above exercise
-- In `src/app/workshops/add-workshop/add-workshop.component.ts`,
-```ts
-import {
-    FormBuilder,
-    FormControl,
-    FormGroup,
-    ReactiveFormsModule,
-    Validators,
-} from '@angular/forms';
-```
-```ts
-imports: [ReactiveFormsModule],
-```
-```ts
-constructor(private fb: FormBuilder) {
-    this.addWorkshopForm = this.fb.group({
-        name: ['', [Validators.required]],
-        category: ['', [Validators.required]],
-        description: ['', [Validators.required]],
-        startDate: ['', [Validators.required]],
-        endDate: ['', [Validators.required]],
-        time: ['', [Validators.required]],
-        location: this.fb.group({
-            address: ['', Validators.required],
-            city: ['', Validators.required],
-            state: ['', Validators.required],
-        }),
-        modes: this.fb.group({
-            inPerson: this.fb.control(false),
-            online: this.fb.control(false),
-        }),
-        imageUrl: ['', [Validators.required]],
+    const { register, formState: { errors }, getValues, handleSubmit } = useForm<SessionFormType>({
+        mode: 'all'
     });
-}
 
-addWorkshop() {
-    console.log(this.addWorkshopForm.value);
-}
+    const validateDurationAndLevel = () => {
+        const duration = +getValues('duration');
+        const level = getValues('level');
+
+        if( level === 'Basic' && duration < 1 ) {
+            return 'Basic level shold have minimum 1 hour duration';
+        }
+
+        if( level === 'Intermediate' && duration < 2 ) {
+            return 'Intermediate level shold have minimum 2 hours duration';
+        }
+
+        if( level === 'Advanced' && duration < 3 ) {
+            return 'Advanced level shold have minimum 3 hours duration';
+        }
+    };
+
+    const addSession = async (values : SessionFormType) => {
+        const session = {
+            ...values,
+            sequenceId: +values.sequenceId,
+            duration: +values.duration,
+            upvoteCount: 0,
+            workshopId: id
+        };
+
+        console.log( session );
+
+        // Submit the form if valid
+        // This is discussed in the following steps
+        // @todo
+    };
+
+    return (
+        <div>
+            <h1 className="d-flex justify-content-between align-items-center">
+                Add a Session
+                <Link to=".." className="btn btn-primary">
+                    List of sessions
+                </Link>
+            </h1>
+
+            <hr />
+
+            <Form onSubmit={handleSubmit(addSession)}>
+                <Form.Group className="mb-4" controlId="sequenceId">
+                    <Form.Label>Sequence ID</Form.Label>
+                    <Form.Control
+                        type="text"
+                        placeholder="The Sequence ID of the session (eg. 1, 2, 3...)"
+                        {...register('sequenceId', { required: true, pattern: /^\d+$/ })}
+                    />
+                    {
+                        errors.sequenceId && (
+                            <div className="text-danger">
+                                {
+                                    errors.sequenceId?.type === 'required' && (
+                                        <div>This field is required</div>
+                                    )
+                                }
+                                {
+                                    errors.sequenceId?.type === 'pattern' && (
+                                        <div>Sequence ID must be a positive integer</div>
+                                    )
+                                }
+                            </div>
+                        )
+                    }
+                </Form.Group>
+                <Form.Group className="mb-4" controlId="name">
+                    <Form.Label>Name</Form.Label>
+                    <Form.Control
+                        type="text"
+                        placeholder="Name of the session, Eg. Introduction to Programming"
+                    />
+                </Form.Group>
+                <Form.Group className="mb-4" controlId="speaker">
+                    <Form.Label>Speaker</Form.Label>
+                    <Form.Control
+                        type="text"
+                        placeholder="Name of the speaker(s). Eg. John Doe, Jane Doe"
+                    />
+                </Form.Group>
+                <Form.Group className="mb-4" controlId="duration">
+                    <Form.Label>Duration</Form.Label>
+                    <Form.Control
+                        type="text"
+                        placeholder="The duration of the session in hours (eg. 2.5)"
+                    />
+                </Form.Group>
+                <Form.Group className="mb-4" controlId="level">
+                    <Form.Label>Level</Form.Label>
+                    <Form.Select
+                        aria-label="Level"
+                        {...register('level', { required: true, validate: validateDurationAndLevel })}
+                    >
+                        <option disabled>-- Select the level --</option>
+                        <option value="Basic">Basic</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                    </Form.Select>
+                    {
+                        errors.level && (
+                            <div className="text-danger">
+                                {
+                                    errors.level?.type === 'required' && (
+                                        <div>This field is required</div>
+                                    )
+                                }
+                                {
+                                    errors.level?.type === 'validate' && (
+                                        <div>The duration in insufficient for the selected level</div>
+                                    )
+                                }
+                            </div>
+                        )
+                    }
+                </Form.Group>
+                <Form.Group className="mb-4" controlId="abstract">
+                    <Form.Label>Abstract</Form.Label>
+                    <Form.Control as="textarea" rows={3} />
+                </Form.Group>
+
+                <Button type="submit">Add a session</Button>
+            </Form>
+        </div>
+    );
+};
+
+export default AddSession;
 ```
-- In `src/app/workshops/add-workshop/add-workshop.component.html` (showing validations error messages is left out of this solution).
-```html
-<div>
-    <h1 class="my-3">Add a workshop</h1>
-</div>
-
-<hr />
-
-<form
-    id="add-workshop-form"
-    [formGroup]="addWorkshopForm"
-    (ngSubmit)="addWorkshop()"
-    novalidate
->
-    <div class="mb-3">
-        <label for="name" class="form-label">Name</label>
-        <input
+- __EXERCISE__: Set up input validation rules and error handling for rest of the inputs as well.
+- __SOLUTION__:
+```tsx
+<Form onSubmit={handleSubmit(addSession)}>
+    <Form.Group className="mb-4" controlId="sequenceId">
+        <Form.Label>Sequence ID</Form.Label>
+        <Form.Control
             type="text"
-            class="form-control"
-            id="name"
-            name="name"
-            autocomplete="off"
-            formControlName="name"
+            placeholder="The Sequence ID of the session (eg. 1, 2, 3...)"
+            {...register('sequenceId', { required: true, pattern: /^\d+$/ })}
         />
-    </div>
-    <div class="mb-3">
-        <label for="category" class="form-label">Category</label>
-        <select
-            class="form-select"
-            id="category"
-            name="category"
-            formControlName="category"
+        {
+            errors.sequenceId && (
+                <div className="text-danger">
+                    {
+                        errors.sequenceId?.type === 'required' && (
+                            <div>This field is required</div>
+                        )
+                    }
+                    {
+                        errors.sequenceId?.type === 'pattern' && (
+                            <div>Sequence ID must be a positive integer</div>
+                        )
+                    }
+                </div>
+            )
+        }
+    </Form.Group>
+    <Form.Group className="mb-4" controlId="name">
+        <Form.Label>Name</Form.Label>
+        <Form.Control
+            type="text"
+            placeholder="Name of the session, Eg. Programming 101 - Introduction to programming"
+            {...register('name', { required: true, pattern: /^[A-Za-z\d][A-Za-z\d .,'&_\/:+#@-]*$/ })}
+        />
+        {
+            errors.name && (
+                <div className="text-danger">
+                    {
+                        errors.name?.type === 'required' && (
+                            <div>This field is required</div>
+                        )
+                    }
+                    {
+                        errors.name?.type === 'pattern' && (
+                            <div>Name of the session has characters that are not allowed - Must begin with alphanumeric, and can have alphanumeric, spaces, and these characters only - .,'&_/:+#@-</div>
+                        )
+                    }
+                </div>
+            )
+        }
+    </Form.Group>
+    <Form.Group className="mb-4" controlId="speaker">
+        <Form.Label>Speaker</Form.Label>
+        <Form.Control
+            type="text"
+            placeholder="Name of the speaker(s). Eg. John Doe, Jane Doe"
+            {...register('speaker', { required: true, pattern: /^[A-Za-z][A-Za-z ]*(,\s*[A-Za-z][A-Za-z ]*)*$/ })}
+        />
+        {
+            errors.speaker && (
+                <div className="text-danger">
+                    {
+                        errors.speaker?.type === 'required' && (
+                            <div>This field is required</div>
+                        )
+                    }
+                    {
+                        errors.speaker?.type === 'pattern' && (
+                            <div>Comma-separated name(s) of speaker(s)</div>
+                        )
+                    }
+                </div>
+            )
+        }
+    </Form.Group>
+    <Form.Group className="mb-4" controlId="duration">
+        <Form.Label>Duration</Form.Label>
+        <Form.Control
+            type="text"
+            placeholder="The duration of the session in hours (eg. 2.5)"
+            {...register('duration', { required: true, pattern: /^\d+(\.\d+)?$/ })}
+        />
+        {
+            errors.duration && (
+                <div className="text-danger">
+                    {
+                        errors.duration?.type === 'required' && (
+                            <div>This field is required</div>
+                        )
+                    }
+                    {
+                        errors.duration?.type === 'pattern' && (
+                            <div>Only number with optional decimal part allowed</div>
+                        )
+                    }
+                </div>
+            )
+        }
+    </Form.Group>
+    <Form.Group className="mb-4" controlId="level">
+        <Form.Label>Level</Form.Label>
+        <Form.Select
+            aria-label="Level"
+            {...register('level', { required: true, validate: validateDurationAndLevel })}
         >
-            <option value="frontend">Frontend</option>
-            <option value="backend">Backend</option>
-            <option value="database">Database</option>
-            <option value="language">Language</option>
-            <option value="mobile">Mobile</option>
-            <option value="devops">Devops</option>
-        </select>
-    </div>
-    <div class="mb-3">
-        <label for="description" class="form-label">Description</label>
-        <textarea
-            class="form-control"
-            id="description"
-            rows="3"
-            name="description"
-            formControlName="description"
-        ></textarea>
-    </div>
-    <div class="mb-3">
-        <label for="startDate" class="form-label">Start date</label>
-        <input
-            type="date"
-            class="form-control"
-            id="startDate"
-            name="startDate"
-            autocomplete="off"
-            formControlName="startDate"
+            <option disabled>-- Select the level --</option>
+            <option value="Basic">Basic</option>
+            <option value="Intermediate">Intermediate</option>
+            <option value="Advanced">Advanced</option>
+        </Form.Select>
+        {
+            errors.level && (
+                <div className="text-danger">
+                    {
+                        errors.level?.type === 'required' && (
+                            <div>This field is required</div>
+                        )
+                    }
+                    {
+                        errors.level?.type === 'validate' && (
+                            <div>The duration in insufficient for the selected level</div>
+                        )
+                    }
+                </div>
+            )
+        }
+    </Form.Group>
+    <Form.Group className="mb-4" controlId="abstract">
+        <Form.Label>Abstract</Form.Label>
+        <Form.Control
+            as="textarea"
+            rows={3}
+            {...register('abstract', { required: true, minLength: 20, maxLength: 1024 })}
         />
-    </div>
-    <div class="mb-3">
-        <label for="endDate" class="form-label">End date</label>
-        <input
-            type="date"
-            class="form-control"
-            id="endDate"
-            name="endDate"
-            autocomplete="off"
-            formControlName="endDate"
-        />
-    </div>
-    <div class="mb-3">
-        <label for="time" class="form-label">Time</label>
-        <input
-            type="text"
-            class="form-control"
-            id="time"
-            name="time"
-            autocomplete="off"
-            formControlName="time"
-        />
-    </div>
-    <div formGroupName="location">
-        <div class="mb-3">
-            <label for="address" class="form-label">Address</label>
-            <input
-                type="text"
-                class="form-control"
-                id="address"
-                name="address"
-                autocomplete="off"
-                formControlName="address"
-            />
-        </div>
-        <div class="mb-3">
-            <label for="city" class="form-label">City</label>
-            <input
-                type="text"
-                class="form-control"
-                id="city"
-                name="city"
-                autocomplete="off"
-                formControlName="city"
-            />
-        </div>
-        <div class="mb-3">
-            <label for="state" class="form-label">State</label>
-            <input
-                type="text"
-                class="form-control"
-                id="state"
-                name="state"
-                autocomplete="off"
-                formControlName="state"
-            />
-        </div>
-    </div>
-    <div class="mb-3" formGroupName="modes">
-        <label class="col-lg-2 col-form-label">Modes</label>
-        <div class="col-lg-10">
-            <div>
-                <input
-                    type="checkbox"
-                    id="inPerson"
-                    formControlName="inPerson"
-                />
-                <label for="inPerson" class="ms-2">In Person</label>
-            </div>
-            <div>
-                <input type="checkbox" id="online" formControlName="online" />
-                <label for="online" class="ms-2">Online</label>
-            </div>
-        </div>
-    </div>
-    <div class="mb-3">
-        <label for="imageUrl" class="form-label">Image URL</label>
-        <input
-            type="url"
-            class="form-control"
-            id="imageUrl"
-            name="imageUrl"
-            autocomplete="off"
-            formControlName="imageUrl"
-        />
-    </div>
+        {
+            errors.abstract && (
+                <div className="text-danger">
+                    {
+                        errors.abstract?.type === 'required' && (
+                            <div>This field is required</div>
+                        )
+                    }
+                    {
+                        errors.abstract?.type === 'minLength' && (
+                            <div>Minimum 20 characters needed</div>
+                        )
+                    }
+                    {
+                        errors.abstract?.type === 'maxLength' && (
+                            <div>Maximum 1024 characters allowed</div>
+                        )
+                    }
+                </div>
+            )
+        }
+    </Form.Group>
 
-    <button class="btn btn-primary" [disabled]="addWorkshopForm.invalid">
-        Add workshop
-    </button>
-</form>
+    <Button type="submit">Add a session</Button>
+</Form>
 ```
 
-## Step 40: Adding workshop to the backend
-- In `src/app/workshops/workshops.service.ts`,
+## Step 35: Handle form submission and add the session
+- In `src/services/sessions.ts`,
 ```ts
-postWorkshop(workshop: Omit<IWorkshop, 'id'>) {
-    return this.http.post<IWorkshop>(`${this.apiUrl}/workshops`, workshop, {
+const postSession = async (session: Omit<ISession, 'id'>) => {
+    // we generally pass data in PUT request. In this case we don't have any data.
+    const response = await axios.post<ISession>(
+        `${apiUrl}/sessions`,
+        session,
+        {
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }
+    );
+
+    return response.data;
+};
+```
+- In `src/components/workshops/WorkshopDetails/AddSession/AddSession.tsx`
+```tsx
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from 'react-toastify';
+import { postSession } from '../../../../services/sessions';
+```
+```tsx
+const AddSession = ({ id }: Props) => {
+    const navigate = useNavigate();
+
+    // rest of code
+    // ...
+
+    const addSession = async (sessionData) => {
+        // rest of code
+        // ...
+
+        // POST the new session information to create a new session
+        try {
+            const newSession = await postSession( session );
+            toast.success('New session has been added');
+            navigate( '../' ); // or navigate('/workshops/${id}')
+        } catch(error) {
+            toast.error((error as Error).message);
+        }
+    };
+
+    return (
+        /* code for the UI... */
+    );
+};
+
+export default AddSession;
+```
+
+## Step 36: Getting started with a form to add a workshop
+- __EXERCISE__: In `src/components/workshops/AddWorkshop/AddWorkshop.tsx`, do necessary set up for a form to add a new workshop. Group address, city, state under a separate FormGroup as "location". Group the 2 checkboxes under "modes". Set up validations using `useForm()` method of `react-hook-form`. On submit of the form, log the value of the form. 
+- __To de done__
+
+## Step 37: Solution to the above exercise
+- In `src/components/workshops/AddWorkshop/AddWorkshop.tsx`
+- __To de done__
+
+## Step 38: Adding workshop to the backend
+- In `src/services/workshops.ts`,
+```ts
+const postWorkshop = async (workshop: Omit<IWorkshop, 'id'>) => {
+    const response = await axios.post<IWorkshop>(`${apiUrl}/workshops`, workshop, {
         headers: {
             'Content-Type': 'application/json',
         },
     });
+
+    return response.data;
 }
 ```
-- In `src/app/workshops/add-workshop/add-workshop.component.ts`,
-```ts
-import { Component } from '@angular/core';
-import { Router } from '@angular/router';
-import {
-    FormBuilder,
-    FormControl,
-    FormGroup,
-    ReactiveFormsModule,
-    Validators,
-} from '@angular/forms';
-import { WorkshopsService } from '../workshops.service';
-import { ToastService } from '../../common/toast/toast.service';
-
-@Component({
-    selector: 'app-add-workshop',
-    standalone: true,
-    imports: [ReactiveFormsModule],
-    templateUrl: './add-workshop.component.html',
-    styleUrl: './add-workshop.component.scss',
-})
-export class AddWorkshopComponent {
-    addWorkshopForm!: FormGroup;
-
-    constructor(
-        private fb: FormBuilder,
-        private workshopsService: WorkshopsService,
-        private toastService: ToastService,
-        private router: Router,
-    ) {
-        this.addWorkshopForm = this.fb.group({
-            name: ['', [Validators.required]],
-            category: ['', [Validators.required]],
-            description: ['', [Validators.required]],
-            startDate: ['', [Validators.required]],
-            endDate: ['', [Validators.required]],
-            time: ['', [Validators.required]],
-            location: this.fb.group({
-                address: ['', Validators.required],
-                city: ['', Validators.required],
-                state: ['', Validators.required],
-            }),
-            modes: this.fb.group({
-                inPerson: this.fb.control(false),
-                online: this.fb.control(false),
-            }),
-            imageUrl: ['', [Validators.required]],
-        });
-    }
-
-    addWorkshop() {
-        this.workshopsService
-            .postWorkshop(this.addWorkshopForm.value)
-            .subscribe({
-                next: (workshop) => {
-                    this.toastService.add({
-                        message: `Successfully added workshop - ${workshop.name}`,
-                        className: 'bg-success text-light',
-                        duration: 5000,
-                    });
-
-                    this.router.navigateByUrl('/workshops');
-                },
-                error: (error) => {
-                    this.toastService.add({
-                        message: `Could not add workshop | ${error.message}`,
-                        className: 'bg-danger text-light',
-                        duration: 5000,
-                    });
-                },
-            });
-    }
-}
-```
+- In `src/components/workshops/AddWorkshop/AddWorkshop.tsx`,
+- __To de done__
 - You should now be able to fill the details in the form, and submit it to add a new workshop to the backend.
 
 ## Step 41: Updating (Editing) workshop
-- We reuse the `AddWorkshopComponent` for editing as well as there is very little difference between the two.
-- Set up additional routing to the `AddWorkshopComponent` component for editing a workshop with given id in `src/app/workshops/workshops.routes.ts`
+- We reuse the `AddWorkshop` component for editing as well as there is very little difference between the two.
+- Set up additional routing to the `AddWorkshopComponent` component for editing a workshop with given id in `src/App.tsx`
+- __To de done__
+- Set link to navigate to edit workshop in `src/components/workshops/WorkshopsList/Item/Item.tsx`
+- __To de done__
+- Add service method to update a workshop with a given id in `src/services/workshops.ts`
 ```ts
-{
-    path: 'workshops/edit/:id',
-    component: AddWorkshopComponent,
-    title: 'Edit a workshop',
-},
-```
-- Set link to navigate to edit workshop in `src/app/workshops/workshops-list/item/item.component.html`
-```html
-<button
-    class="me-2 btn btn-info btn-sm btn-action-button"
-    title="Edit this workshop"
-    [routerLink]="['/workshops', 'edit', workshop.id]"
->
-    <fa-icon [icon]="icons.faPencil"></fa-icon>
-</button>
-```
-- Add service method to update a workshop with a given id in `src/app/workshops/workshops.service.ts`
-```ts
-putWorkshop(workshop: Omit<IWorkshop, 'id'>, id: number) {
-    return this.http.put<IWorkshop>(
-        `${this.apiUrl}/workshops/${id}`,
+const putWorkshop = async (workshop: Omit<IWorkshop, 'id'>, id: number) => {
+    const response = await axios.put<IWorkshop>(
+        `${apiUrl}/workshops/${id}`,
         workshop,
         {
             headers: {
@@ -3449,111 +3183,10 @@ putWorkshop(workshop: Omit<IWorkshop, 'id'>, id: number) {
             },
         }
     );
+
+    return response.data;
 }
 ```
-- In `demos/10-angular/workshops-app/src/app/workshops/add-workshop/add-workshop.component.ts`,
-```ts
-import { ActivatedRoute, Router } from '@angular/router';
-```
-```ts
-id!: number;
-isEditing = false;
-```
-```ts
-constructor(
-    private fb: FormBuilder,
-    private workshopsService: WorkshopsService,
-    private toastService: ToastService,
-    private router: Router,
-    private activatedRoute: ActivatedRoute
-) {
-    const idStr = this.activatedRoute.snapshot.paramMap.get('id');
-
-    if (idStr === null) {
-        this.isEditing = false;
-    } else {
-        this.isEditing = true;
-        this.id = +idStr;
-
-        // @todo Fetch the details of the workshop being edited, and populate the form controls
-        // Step 1: get the details of workshop with given id
-        // Step 2: (inside next) once we get the details, we can use this.addWorkshopForm.patchValue()
-        this.workshopsService.getWorkshopById(this.id).subscribe({
-            next: (workshop) => {
-                // if you use setValue, the value you pass (in this case `workshop`), should not have any extra / missing fields
-                // to take care of difference in format of dates in the backend, and the date format of datepicker
-                workshop.startDate = workshop.startDate.substring(0, 10);
-                workshop.endDate = workshop.endDate.substring(0, 10);
-
-                this.addWorkshopForm.patchValue(workshop);
-            },
-            error: () => {
-                alert(
-                    `Something went wrong fetching workshop details. Please reload the page.`
-                );
-            },
-        });
-    }
-
-    // rest of existing code...
-}
-```
-```ts
-addWorkshop() {
-    if (this.isEditing) {
-        this.workshopsService
-            .putWorkshop(this.addWorkshopForm.value, this.id)
-            .subscribe({
-                next: (workshop) => {
-                    this.toastService.add({
-                        message: `Successfully updated workshop with id ${workshop.id}`,
-                        className: 'bg-success text-light',
-                        duration: 5000,
-                    });
-
-                    this.router.navigateByUrl('/workshops');
-                },
-                error: (error) => {
-                    this.toastService.add({
-                        message: `Could not edit workshop | ${error.message}`,
-                        className: 'bg-danger text-light',
-                        duration: 5000,
-                    });
-                },
-            });
-    } else {
-        this.workshopsService
-            .postWorkshop(this.addWorkshopForm.value)
-            .subscribe({
-                next: (workshop) => {
-                    this.toastService.add({
-                        message: `Successfully added workshop - ${workshop.name}`,
-                        className: 'bg-success text-light',
-                        duration: 5000,
-                    });
-
-                    this.router.navigateByUrl('/workshops');
-                },
-                error: (error) => {
-                    this.toastService.add({
-                        message: `Could not add workshop | ${error.message}`,
-                        className: 'bg-danger text-light',
-                        duration: 5000,
-                    });
-                },
-            });
-    }
-}
-```
-- In `src/app/workshops/add-workshop/add-workshop.component.html`,
-```html
-<div>
-    <h1 class="my-3">{{ isEditing ? "Edit workshop" : "Add a workshop" }}</h1>
-</div>
-```
-```html
-<button class="btn btn-primary" [disabled]="addWorkshopForm.invalid">
-    {{ isEditing ? "Update workshop" : "Add workshop" }}
-</button>
-```
+- In `/src/components/workshops/AddWorkshop/AddWorkshop.tsx`,
+- __To de done__
 - You should now be able to modify the details in the form, and submit it to update a workshop's details in the backend.
