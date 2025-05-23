@@ -1,6 +1,8 @@
 import axios from 'axios';
 import IWorkshop from '../models/IWorkshop';
 
+const apiUrl = process.env.REACT_APP_API_URL;
+
 const getWorkshops = async (page : number = 1, category: string = '') => {
     const params: {
         _page: number;
@@ -14,7 +16,7 @@ const getWorkshops = async (page : number = 1, category: string = '') => {
     }
 
     const response = await axios.get<IWorkshop[]>(
-        `https://workshops-server.onrender.com/workshops`,
+        `${apiUrl}/workshops`,
         {
             // params: params
             params
@@ -26,7 +28,7 @@ const getWorkshops = async (page : number = 1, category: string = '') => {
 
 const getWorkshopById = async (id: number) => {
     const response = await axios.get<IWorkshop>(
-        `https://workshops-server.onrender.com/workshops/${id}`
+        `${apiUrl}/workshops/${id}`
     );
 
     return response.data;
