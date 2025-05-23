@@ -21,7 +21,6 @@ const AddSession = ( { id } : Props) => {
                     <Form.Control
                         type="number"
                         placeholder="The Sequence ID of the session (eg. 1, 2, 3...)"
-                        ref={sequenceIdRef}
                     />
                 </Form.Group>
                 <Form.Group className="mb-4" controlId="name">
