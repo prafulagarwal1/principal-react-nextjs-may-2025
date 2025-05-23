@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { NavLink, Routes, Route } from 'react-router-dom';
 import { Col, Image, Row } from 'react-bootstrap';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheckCircle, faTimesCircle } from "@fortawesome/free-regular-svg-icons";
@@ -6,9 +7,15 @@ import { faCheckCircle, faTimesCircle } from "@fortawesome/free-regular-svg-icon
 import LoadingSpinner from "../../common/LoadingSpinner/LoadingSpinner";
 import ErrorAlert from "../../common/ErrorAlert/ErrorAlert";
 
+import SessionsList from './SessionsList/SessionsList';
+import AddSession from './AddSession/AddSession';
+
 import { getWorkshopById } from '../../../services/workshops';
 import IWorkshop from '../../../models/IWorkshop';
 import FormattedDate from '../../common/FormattedDate/FormattedDate';
+
+import './WorkshopDetails.scss';
+
 interface Props {
     id: number
 }
@@ -90,6 +97,32 @@ const WorkshopDetails = ( { id } : Props ) => {
                     </Row>
                 </>
             )}
+
+            <div className="mt-5">
+                <NavLink
+                    to={"/workshops/" + id}
+                    className={
+                        ({ isActive }) => "me-2 btn btn-primary btn-sm btn-child-link" + ( isActive ? "btn-active" : "" )
+                    }
+                >
+                    Sessions List
+                </NavLink>
+                <NavLink
+                    to={"/workshops/" + id + "/add"}
+                    className={
+                        ({ isActive }) => "btn btn-primary btn-sm btn-child-link" + ( isActive ? "btn-active" : "" )
+                    }
+                >
+                    Add a session
+                </NavLink>
+            </div>
+
+            <div className="my-4">
+                <Routes>
+                    <Route path="" element={<SessionsList id={id} />} />
+                    <Route path="/add" element={<AddSession id={id} />} />
+                </Routes>
+            </div>
         </div>
     );
 };

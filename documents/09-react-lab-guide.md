@@ -1802,7 +1802,11 @@ import { faCheckCircle, faTimesCircle } from "@fortawesome/free-regular-svg-icon
 - Child routes add on the the parent route and are used to show one of a set of children components conditionally in a parent component. We will show sessions list below the workshop details if the URL is `http://localhost:3000/workshops/:id` (adds nothing to the parent route), and the add session form below the workshop details if the URL is `http://localhost:3000/workshops/:id/add-session` (Adds 'add-session' to the parent route).
 - Create 2 components to be used as children in workshop details component. These are part of the `WorkshopDetails` component and hence we do not create page components for these. First create `src/components/workshops/WorkshopDetails/SessionsList/SessionsList.tsx`.
 ```tsx
-const SessionsList = () => {
+interface Props {
+    id: number
+}
+
+const SessionsList = ( { id } : Props ) => {
     return (
         <div>SessionsList works!</div>
     );
@@ -1812,7 +1816,11 @@ export default SessionsList;
 ```
 - Next create First create `src/components/workshops/WorkshopDetails/AddSession/AddSession.tsx`
 ```tsx
-const AddSession = () => {
+interface Props {
+    id: number
+}
+
+const AddSession = ( { id } : Props ) => {
     return (
         <div>AddSession works!</div>
     );
@@ -1844,7 +1852,6 @@ import AddSession from './AddSession/AddSession';
 <div className="mt-5">
     <NavLink
         to={"/workshops/" + id}
-        exact
         className={
             ({ isActive }) => "btn btn-primary btn-sm btn-child-link" + ( isActive ? "btn-active" : "" )
         }
