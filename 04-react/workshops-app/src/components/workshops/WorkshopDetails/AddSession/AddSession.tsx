@@ -9,10 +9,19 @@ interface Props {
     id: number
 }
 
+interface SessionFormType {
+    sequenceId: number;
+    name: string;
+    speaker: string;
+    duration: number;
+    level: Level;
+    abstract: string;
+}
+
 const AddSession = ( { id } : Props) => {
     // register() -> { ref: useRef(), ... }
 
-    const { register, formState: { errors }, getValues } = useForm({
+    const { register, formState: { errors }, getValues, handleSubmit } = useForm<SessionFormType>({
         mode: 'all' // by default validations are triggered first time only after first submit. Now we are triggering on first blur, input
     });
 
@@ -33,26 +42,18 @@ const AddSession = ( { id } : Props) => {
         }
     };
 
-    const addSession = (event : FormEvent) => {
-        event.preventDefault();
+    const addSession = (values : SessionFormType) => {
+        console.log( values );
 
-        // const session = {
-        //     workshopId: id,
-        //     upvoteCount: 0,
-        //     sequenceId: +sequenceId,
-        //     // name: name,
-        //     name,
-        //     speaker,
-        //     duration: +duration,
-        //     level: level as Level,
-        //     abstract,
-        // };
+        const session = {
+            ...values,
+            sequenceId: +values.sequenceId,
+            duration: +values.duration,
+            upvoteCount: 0,
+            workshopId: id
+        };
 
-        // console.log( session );
-
-        // You can do validation here, and submit the form if valid
-        // This is discussed in the following steps
-        // @todo
+        
     };
 
     return (
@@ -64,7 +65,7 @@ const AddSession = ( { id } : Props) => {
 
             <hr />
 
-            <Form onSubmit={addSession}>
+            <Form onSubmit={handleSubmit(addSession)}>
                 <Form.Group className="mb-4" controlId="sequenceId">
                     <Form.Label>Sequence ID</Form.Label>
                     <Form.Control
