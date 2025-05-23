@@ -4,7 +4,7 @@ import Menu from './components/common/Menu/Menu';
 import HomePage from "./app/page";
 import WorkshopsListPage from './app/workshops/page';
 import AddWorkshopPage from './app/workshops/add/page';
-import WorkshopDetailsPage from './app/workshops/[id]/WorkshopDetails';
+import WorkshopDetailsPage from './app/workshops/[id]/page';
 import NotFoundPage from './app/not-found';
 
 import './App.scss';

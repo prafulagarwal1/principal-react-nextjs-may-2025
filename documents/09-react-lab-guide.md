@@ -1677,8 +1677,8 @@ export default WorkshopDetailsPage;
 import { useEffect, useState } from 'react';
 import { Col, Image, Row } from 'react-bootstrap';
 
-import LoadingSpinner from "../../LoadingSpinner/LoadingSpinner";
-import ErrorAlert from "../../ErrorAlert/ErrorAlert";
+import LoadingSpinner from "../../common/LoadingSpinner/LoadingSpinner";
+import ErrorAlert from "../../common/ErrorAlert/ErrorAlert";
 
 import { getWorkshopById } from '../../../services/workshops';
 import IWorkshop from '../../../models/IWorkshop';
@@ -1711,7 +1711,7 @@ const WorkshopDetails = ({ id } : Props) => {
 
             helper();
         },
-        []
+        [id]
     );
 
     return (

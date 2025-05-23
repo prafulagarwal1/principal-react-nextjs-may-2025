@@ -22,8 +22,17 @@ const getWorkshops = async (page : number = 1, category: string = '') => {
     );
 
     return response.data;
-}
+};
+
+const getWorkshopById = async (id: number) => {
+    const response = await axios.get<IWorkshop>(
+        `https://workshops-server.onrender.com/workshops/${id}`
+    );
+
+    return response.data;
+};
 
 export {
-    getWorkshops
+    getWorkshops,
+    getWorkshopById
 };
