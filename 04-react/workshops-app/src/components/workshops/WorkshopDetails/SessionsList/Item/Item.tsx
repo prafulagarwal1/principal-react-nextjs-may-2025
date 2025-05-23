@@ -1,12 +1,15 @@
-import ISession from "../../../../../models/ISession";
 import Col from "react-bootstrap/Col";
 import Row from "react-bootstrap/Row";
 
+import VotingWidget, { VoteFunction } from "../../../../common/VotingWidget/VotingWidget";
+import ISession from "../../../../../models/ISession";
+
 interface Props {
-    session: ISession
+    session: ISession,
+    vote: VoteFunction
 }
 
-const Item = ( { session } : Props ) => {
+const Item = ( { session, vote } : Props ) => {
     const { id, name, speaker, level, duration, abstract, upvoteCount } = session;
 
     return (
@@ -15,8 +18,10 @@ const Item = ( { session } : Props ) => {
                 xs={1}
                 className="d-flex flex-column justify-content-center align-items-center"
             >
-                {/* @todo voting widget */}
-                {upvoteCount}
+                <VotingWidget
+                    votes={upvoteCount}
+                    vote={vote}
+                />
             </Col>
             <Col xs={11}>
                 <h3>{ name }</h3>
