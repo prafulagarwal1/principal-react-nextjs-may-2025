@@ -1787,12 +1787,12 @@ import { faCheckCircle, faTimesCircle } from "@fortawesome/free-regular-svg-icon
 
 {/* Add this */}
 <div>
-    <span class="me-4">
-        <FontAwesomeIcon icon={workshop.modes.inPerson ? faCheckCircle : faTimesCircle} />
+    <span className="me-4">
+        <FontAwesomeIcon icon={workshop.modes.inPerson ? faCheckCircle : faTimesCircle} className="me-2" />
         In person
     </span>
     <span>
-        <FontAwesomeIcon icon={workshop.modes.online ? faCheckCircle : faTimesCircle} />
+        <FontAwesomeIcon icon={workshop.modes.online ? faCheckCircle : faTimesCircle} className="me-2" />
         Online
     </span>
 </div>
@@ -1841,7 +1841,7 @@ import AddSession from './AddSession/AddSession';
 - You should now be able to see differen child components when visiting `/workshops/1` and `/workshops/1/add`.
 - Add `NavLink` to switch between children. By default, the `active` class is added to the active link. If we want to use a custom class, we can do it using a function value for `className` prop, like so
 ```tsx
-<div class="mt-5">
+<div className="mt-5">
     <NavLink
         to={"/workshops/" + id}
         exact
@@ -2289,7 +2289,7 @@ import { faTrash, faPencil } from "@fortawesome/free-regular-svg-icons";
 ```
 - Within the `Card` component
 ```tsx
-<div class="card-action-buttons">
+<div className="card-action-buttons">
     <Button
         variant="info"
         size="sm"
@@ -2408,27 +2408,27 @@ const deleteWorkshop = async (workshop: IWorkshop) => {
 ```
 - In order to display a confirmation dialog before deletion, we add this in `src/components/workshops/WorkshopsList/WorkshopsList.tsx`. To be done following https://react-bootstrap.netlify.app/docs/components/modal 
 ```tsx
-<div class="modal-header">
-    <h4 class="modal-title" id="modal-basic-title">
+<div className="modal-header">
+    <h4 className="modal-title" id="modal-basic-title">
         Please confirm deletion!
     </h4>
     <button
         type="button"
-        class="btn-close"
+        className="btn-close"
         aria-label="Close"
         onClick={() => {}}
     ></button>
 </div>
-<div class="modal-body">
-    <div class="mb-3">
+<div className="modal-body">
+    <div className="mb-3">
         You are about to delete a workshop. This action cannot be undone.
         Are you sure want to proceed?
     </div>
     <div>
-        <button class="btn btn-light" onClick={() => {}}>
+        <button className="btn btn-light" onClick={() => {}}>
             Cancel
         </button>
-        <button class="btn btn-danger" onClick={() => {}}>
+        <button className="btn btn-danger" onClick={() => {}}>
             OK
         </button>
     </div>

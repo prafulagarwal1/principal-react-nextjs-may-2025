@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Col, Image, Row } from 'react-bootstrap';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCheckCircle, faTimesCircle } from "@fortawesome/free-regular-svg-icons";
 
 import LoadingSpinner from "../../common/LoadingSpinner/LoadingSpinner";
 import ErrorAlert from "../../common/ErrorAlert/ErrorAlert";
@@ -71,6 +73,16 @@ const WorkshopDetails = ( { id } : Props ) => {
                                     {workshop.location.address},
                                     {workshop.location.city},
                                     {workshop.location.state}
+                                </div>
+                                <div>
+                                    <span className="me-4">
+                                        <FontAwesomeIcon icon={workshop.modes.inPerson ? faCheckCircle : faTimesCircle} className="me-2" />
+                                        In person
+                                    </span>
+                                    <span>
+                                        <FontAwesomeIcon icon={workshop.modes.online ? faCheckCircle : faTimesCircle} className="me-2" />
+                                        Online
+                                    </span>
                                 </div>
                             </div>
                             <div dangerouslySetInnerHTML={{ __html: workshop.description }}></div>
