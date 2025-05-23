@@ -3165,7 +3165,7 @@ const postWorkshop = async (workshop: Omit<IWorkshop, 'id'>) => {
 - __To de done__
 - You should now be able to fill the details in the form, and submit it to add a new workshop to the backend.
 
-## Step 41: Updating (Editing) workshop
+## Step 39: Updating (Editing) workshop
 - We reuse the `AddWorkshop` component for editing as well as there is very little difference between the two.
 - Set up additional routing to the `AddWorkshopComponent` component for editing a workshop with given id in `src/App.tsx`
 - __To de done__
@@ -3190,3 +3190,130 @@ const putWorkshop = async (workshop: Omit<IWorkshop, 'id'>, id: number) => {
 - In `/src/components/workshops/AddWorkshop/AddWorkshop.tsx`,
 - __To de done__
 - You should now be able to modify the details in the form, and submit it to update a workshop's details in the backend.
+
+## Step 40: Implementing theming in the app using Context API
+- The Context API was introduced in React v16.6 as a way to share data is a subtree of components (thus avoiding __props drilling__). Before it was introduced, using third-party state management libraries like __Redux__ were the main option (these are still popular though).
+- We introduce theme (light/dark) for our app, and share the theme as a context value.
+- We shall implement this in 3 steps
+    - Define a `ThemeContext` to enable sharing the theme value, as well as `toggleTheme` method to enable toggling the theme ('light' -> 'dark' and 'dark' -> 'light'), along with some other information.
+    - Maintain and provide the state by wrapping a top-level component like the `App` component
+    - Consume it in descendant components that need to show their UI based on the theme.
+- We first set up the context in the `src/contexts/theme.tsx`
+```tsx
+import { createContext, useContext, useState } from "react";
+
+type Theme = 'light' | 'dark';
+
+interface ThemeContextType {
+    value: Theme,
+    textValue: Theme,
+    toggleTheme: () => void
+}
+
+// you pass the "default" context to createContext()
+const ThemeContext = createContext<ThemeContextType>({
+    value: 'light',
+    textValue: 'dark',
+    toggleTheme: () => {} // a no-operation function
+});
+
+interface ThemeProviderProps {
+    children: ReactNode;
+}
+
+const ThemeProvider = ({ children }: ThemeProviderProps) => {
+    const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+    const contrastTheme: 'light' | 'dark' = theme === 'light' ? 'dark' : 'light';
+
+    const toggleTheme = () => {
+        setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+    };
+
+    return (
+        <ThemeContext.Provider value={{ theme, contrastTheme, setTheme, toggleTheme }}>
+            {children}
+        </ThemeContext.Provider>
+    );
+}
+
+export const useTheme = () => useContext(ThemeContext);
+
+export type {
+    Theme,
+}
+
+export {
+    ThemeContext as default,
+    ThemeProvider,
+    useTheme,
+};
+```
+- Provide it in `src/index.tsx` using `ThemeProvider` (essentially `ThemeContext.Provider`)
+```tsx
+import { ThemeProvider } from './contexts/theme.tsx';
+```
+```tsx
+root.render(
+    <React.StrictMode>
+        <BrowserRouter>
+            <ThemeProvider>
+                <App />
+            </ThemeProvider>
+        </BrowserRouter>
+    </React.StrictMode>
+);
+```
+- Consume it in components requiring theme information by calling `useTheme()` to retrieve the shared context value (essentially calling `useContext(ThemeContext)` to retrieve the context value). In `src/components/common/Menu/Menu.tsx` we both consume the `theme` value, and add the theme toggling code (on click of the _Change theme_ button).
+```tsx
+import { useTheme } from '../../../contexts/theme';
+```
+```tsx
+const Menu = () => {
+    const { theme, contrastTheme, toggleTheme } = useTheme();
+
+    return (
+        <Navbar collapseOnSelect expand="lg" variant={theme} className={`bg-${theme}`}>
+            {/* rest of UI code... */}
+        </Navbar>
+    );
+};
+```
+```tsx
+<NavDropdown.Item href="#" onClick={toggleTheme}>
+    Change Theme
+</NavDropdown.Item>
+```
+- In `src/components/Home/Home.tsx`, we similarly have it react to theme changes
+```tsx
+import { useTheme } from '../../contexts/theme';
+
+const Home = () => {
+    const { theme, contrastTheme } = useTheme();
+
+    return (
+        <div className={`home p-5 bg-${theme} text-${contrastTheme}`}>
+            <h1>Workshops App</h1>
+
+            <hr />
+
+            <section>
+                <p>Welcome to Workshops App</p>
+                <p>
+                    The app serves details of (fictitious) technical workshops happening in
+                    various cities. Every workshop has a broad topic (eg. JavaScript), and a
+                    workshop has many sessions (each session covers a sub-topic, eg. Closures in
+                    JavaScript).
+                </p>
+                <p>
+                    You can view a list of workshops, details of every workshop, add a workshop,
+                    view the list of sessions in a workshop, and also add a new session for a
+                    workshop.
+                </p>
+            </section>
+        </div>
+    );
+}
+
+export default Home;
+```
