@@ -3214,15 +3214,16 @@ import { createContext, useContext, useState } from "react";
 type Theme = 'light' | 'dark';
 
 interface ThemeContextType {
-    value: Theme,
-    textValue: Theme,
-    toggleTheme: () => void
+    theme: Theme,
+    contrastTheme: Theme,
+    toggleTheme: () => void,
+    setTheme?: (theme: string) => void
 }
 
 // you pass the "default" context to createContext()
 const ThemeContext = createContext<ThemeContextType>({
-    value: 'light',
-    textValue: 'dark',
+    theme: 'light',
+    contrastTheme: 'dark',
     toggleTheme: () => {} // a no-operation function
 });
 
