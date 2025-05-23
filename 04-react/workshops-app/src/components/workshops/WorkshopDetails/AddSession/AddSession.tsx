@@ -1,8 +1,10 @@
 import { useState, FormEvent } from 'react';
 import { Button, Form } from "react-bootstrap";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from 'react-toastify';
 import { useForm } from 'react-hook-form';
 
+import { postSession } from '../../../../services/sessions';
 import { Level } from '../../../../models/ISession';
 
 interface Props {
@@ -20,6 +22,7 @@ interface SessionFormType {
 
 const AddSession = ( { id } : Props) => {
     // register() -> { ref: useRef(), ... }
+    const navigate = useNavigate();
 
     const { register, formState: { errors }, getValues, handleSubmit } = useForm<SessionFormType>({
         mode: 'all' // by default validations are triggered first time only after first submit. Now we are triggering on first blur, input
@@ -42,7 +45,7 @@ const AddSession = ( { id } : Props) => {
         }
     };
 
-    const addSession = (values : SessionFormType) => {
+    const addSession = async (values : SessionFormType) => {
         console.log( values );
 
         const session = {
@@ -53,7 +56,15 @@ const AddSession = ( { id } : Props) => {
             workshopId: id
         };
 
-        
+        // POST the new session information to create a new session
+        try {
+            const newSession = await postSession( session );
+            toast.success('New session has been added');
+            navigate( '../' ); // or navigate('/workshops/${id}')
+        } catch(error) {
+            toast.error((error as Error).message);
+        }
+
     };
 
     return (

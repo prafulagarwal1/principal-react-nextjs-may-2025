@@ -617,6 +617,18 @@
       "abstract": "New session",
       "createdDate": "Jan 08, 2025",
       "id": 47
+    },
+    {
+      "sequenceId": 12,
+      "name": "New session",
+      "speaker": "John Doe",
+      "duration": 10,
+      "level": "Advanced",
+      "abstract": "New session New session",
+      "upvoteCount": 0,
+      "workshopId": 2,
+      "createdDate": "May 23, 2025",
+      "id": 48
     }
   ],
   "users": [
