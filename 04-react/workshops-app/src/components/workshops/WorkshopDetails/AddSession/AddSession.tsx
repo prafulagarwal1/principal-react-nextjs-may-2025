@@ -1,11 +1,51 @@
+import { useRef, FormEvent } from 'react';
 import { Button, Form } from "react-bootstrap";
 import { Link } from "react-router-dom";
+
+import { Level } from '../../../../models/ISession';
 
 interface Props {
     id: number
 }
 
 const AddSession = ( { id } : Props) => {
+    const sequenceIdRef = useRef<HTMLInputElement>(null); // { current: domNodeReference }
+    const nameRef = useRef<HTMLInputElement>(null);
+    const speakerRef = useRef<HTMLInputElement>(null);
+    const durationRef = useRef<HTMLInputElement>(null);
+    const levelRef = useRef<HTMLSelectElement>(null);
+    const abstractRef = useRef<HTMLTextAreaElement>(null);
+
+    const addSession = (event : FormEvent) => {
+        event.preventDefault();
+
+        if(
+            sequenceIdRef.current !== null &&
+            nameRef.current !== null &&
+            speakerRef.current !== null &&
+            durationRef.current !== null &&
+            levelRef.current !== null &&
+            abstractRef.current !== null
+        ) {
+            const session = {
+                workshopId: id,
+                upvoteCount: 0,
+                sequenceId: +sequenceIdRef.current.value,
+                name: nameRef.current.value,
+                speaker: speakerRef.current.value,
+                duration: +durationRef.current.value,
+                level: levelRef.current.value as Level,
+                abstract: abstractRef.current.value
+            };
+
+            console.log( session );
+
+            // You can do validation here, and submit the form if valid
+            // This is discussed in the following steps
+            // @todo
+        }
+    };
+
     return (
         <div>
             <h1 className="d-flex justify-content-between align-items-center">
@@ -15,12 +55,13 @@ const AddSession = ( { id } : Props) => {
 
             <hr />
 
-            <Form>
+            <Form onSubmit={addSession}>
                 <Form.Group className="mb-4" controlId="sequenceId">
                     <Form.Label>Sequence ID</Form.Label>
                     <Form.Control
                         type="number"
                         placeholder="The Sequence ID of the session (eg. 1, 2, 3...)"
+                        ref={sequenceIdRef}
                     />
                 </Form.Group>
                 <Form.Group className="mb-4" controlId="name">
@@ -28,6 +69,7 @@ const AddSession = ( { id } : Props) => {
                     <Form.Control
                         type="text"
                         placeholder="Name of the session, Eg. Introduction to Programming"
+                        ref={nameRef}
                     />
                 </Form.Group>
                 <Form.Group className="mb-4" controlId="speaker">
@@ -35,6 +77,7 @@ const AddSession = ( { id } : Props) => {
                     <Form.Control
                         type="text"
                         placeholder="Name of the speaker(s). Eg. John Doe, Jane Doe"
+                        ref={speakerRef}
                     />
                 </Form.Group>
                 <Form.Group className="mb-4" controlId="duration">
@@ -42,12 +85,14 @@ const AddSession = ( { id } : Props) => {
                     <Form.Control
                         type="text"
                         placeholder="The duration of the session in hours (eg. 2.5)"
+                        ref={durationRef}
                     />
                 </Form.Group>
                 <Form.Group className="mb-4" controlId="level">
                     <Form.Label>Level</Form.Label>
                     <Form.Select
                         aria-label="Level"
+                        ref={levelRef}
                     >
                         <option disabled>-- Select the level --</option>
                         <option value="Basic">Basic</option>
@@ -60,6 +105,7 @@ const AddSession = ( { id } : Props) => {
                     <Form.Control
                         as="textarea"
                         rows={3}
+                        ref={abstractRef}
                     />
                 </Form.Group>
 
