@@ -1,5 +1,6 @@
 import { Alert, Container } from 'react-bootstrap';
 import { Routes, Route } from 'react-router';
+import { ToastContainer } from 'react-toastify';
 import Menu from './components/common/Menu/Menu';
 import HomePage from "./app/page";
 import WorkshopsListPage from './app/workshops/page';
@@ -40,6 +41,11 @@ const App = () => {
                     <Route path="*" element={<NotFoundPage />} />
                 </Routes>
             </Container>
+
+            <ToastContainer
+                position="top-right"
+                autoClose={5000}
+            />
         </div>
     );
 };

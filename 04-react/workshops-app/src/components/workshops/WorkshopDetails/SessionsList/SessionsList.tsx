@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import ListGroup from "react-bootstrap/ListGroup";
+import { toast } from "react-toastify";
 
 import LoadingSpinner from "../../../common/LoadingSpinner/LoadingSpinner";
 import ErrorAlert from "../../../common/ErrorAlert/ErrorAlert";
@@ -50,9 +51,9 @@ const SessionsList = ( { id } : Props ) => {
                 setSessions(
                     sessions => sessions.map( s => s.id === sessionId ? updatedSession : s )
                 );
-                alert('You vote for session ' + updatedSession.name +' has been captured');
+                toast.success('You vote for session ' + updatedSession.name +' has been captured');
             } catch(error) {
-                alert((error as Error).message);
+                toast.error((error as Error).message);
             }
         },
         [voteForSession, setSessions]
