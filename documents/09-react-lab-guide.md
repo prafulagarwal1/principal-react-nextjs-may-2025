@@ -1929,8 +1929,8 @@ import Col from "react-bootstrap/Col";
 import ListGroup from "react-bootstrap/ListGroup";
 import Row from "react-bootstrap/Row";
 
-import LoadingSpinner from "../../../LoadingSpinner/LoadingSpinner";
-import ErrorAlert from "../../../ErrorAlert/ErrorAlert";
+import LoadingSpinner from "../../../common/LoadingSpinner/LoadingSpinner";
+import ErrorAlert from "../../../common/ErrorAlert/ErrorAlert";
 
 import { getSessionsForWorkshop } from "../../../../services/sessions";
 import ISession from "../../../../models/ISession";
@@ -1962,7 +1962,7 @@ const SessionsList = ( { id } : Props ) => {
 
             helper();
         },
-        []
+        [id]
     );
 
     return (
@@ -1992,15 +1992,15 @@ const SessionsList = ( { id } : Props ) => {
                                     {s.upvoteCount}
                                 </Col>
                                 <Col xs={11}>
-                                    <h3>{{ s.name }}</h3>
-                                    <div>by {{ s.speaker }}</div>
-                                    <div>{{ s.level }}</div>
-                                    <div>{{ s.duration }}</div>
-                                    <div>{{ s.abstract }}</div>
+                                    <h3>{ s.name }</h3>
+                                    <div>by { s.speaker }</div>
+                                    <div>{ s.level }</div>
+                                    <div>{ s.duration }</div>
+                                    <div>{ s.abstract }</div>
                                 </Col>
                             </Row>
                         </ListGroup.Item>
-                    )}
+                    ))}
                 </ListGroup>
             )}
         </div>
@@ -2013,6 +2013,8 @@ export default SessionsList;
 - __Solution to the exercise__
 - In `src/components/workshops/WorkshopDetails/SessionsList/Item/Item.tsx`
 ```tsx
+import Col from "react-bootstrap/Col";
+import Row from "react-bootstrap/Row";
 import ISession from "../../../../../models/ISession";
 
 interface Props {
@@ -2020,7 +2022,7 @@ interface Props {
 }
 
 const Item = ( { session } : Props ) => {
-    const { id, name, speaker, level, abstract, upvoteCount } = session;
+    const { id, name, speaker, level, duration, abstract, upvoteCount } = session;
 
     return (
         <Row>
@@ -2032,11 +2034,11 @@ const Item = ( { session } : Props ) => {
                 {upvoteCount}
             </Col>
             <Col xs={11}>
-                <h3>{{ s.name }}</h3>
-                <div>by {{ s.speaker }}</div>
-                <div>{{ s.level }}</div>
-                <div>{{ s.duration }}</div>
-                <div>{{ s.abstract }}</div>
+                <h3>{ name }</h3>
+                <div>by { speaker }</div>
+                <div>{ level }</div>
+                <div>{ duration }</div>
+                <div>{ abstract }</div>
             </Col>
         </Row>
     );
@@ -2050,7 +2052,7 @@ export default Item;
     <ListGroup.Item key={s.id}>
         <Item session={s}/>
     </ListGroup.Item>
-)}
+))}
 ```
 
 ## Step 26: Create a voting widget component and use it for voting on a session
