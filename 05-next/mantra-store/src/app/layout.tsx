@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+
 // import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+
+import MainNavigation from "@/components/main-navigation/main-navigation";
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
@@ -12,6 +15,7 @@ import "./globals.css";
 //   subsets: ["latin"],
 // });
 
+// metadata defaults / metadata shared among pages
 export const metadata: Metadata = {
     title: "Mantra Store",
     description:
@@ -26,7 +30,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`antialiased`}>
-        {children}
+        <MainNavigation />
+        <div className="max-w-screen-xl mx-auto mt-12 px-4">
+          {children}
+        </div>
       </body>
     </html>
   );
