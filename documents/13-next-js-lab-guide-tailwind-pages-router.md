@@ -148,34 +148,33 @@ The `next/font/google` injects fonts via inline styles, making it harder to mana
 ```css
 @import "tailwindcss";
 
-:root {
+@layer base {
+  :root {
     --background: #ffffff;
     --foreground: #171717;
-}
-
-@theme {
     --color-background: var(--background);
     --color-foreground: var(--foreground);
     --font-sans: "Roboto", ui-sans-serif, system-ui, -apple-system, sans-serif;
-}
+  }
 
-.theme-dark {
+  .theme-dark {
     --color-background: #0a0a0a;
     --color-foreground: #ededed;
-}
+  }
 
-@media (prefers-color-scheme: dark) {
+  @media (prefers-color-scheme: dark) {
     :root {
-        --background: #0a0a0a;
-        --foreground: #ededed;
+      --background: #0a0a0a;
+      --foreground: #ededed;
     }
-}
+  }
 
-body {
+  body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     min-height: calc(100vh + 16px);
+  }
 }
 ```
 - In `pages/_document.tsx`
