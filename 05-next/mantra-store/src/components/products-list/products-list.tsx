@@ -1,4 +1,5 @@
 import { IProduct } from "@/types/Product";
+import ProductListItem from "./item/item";
 
 type Props = {
     count: number;
@@ -15,7 +16,7 @@ const ProductsList = ( { products, count, page }: Props ) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-y-4 gap-x-6">
                 {products.map((product) => (
                     <div key={product._id} className="flex items-stretch">
-                        {product.title}
+                        <ProductListItem product={product} />
                     </div>
                 ))}
             </div>
