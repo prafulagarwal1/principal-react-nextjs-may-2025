@@ -1,0 +1,1 @@
+mongoexport --uri "mongodb+srv://puranik:Mantra123%24@cluster0.duet2eg.mongodb.net" --db mantra --collection products --type json --out products.json
