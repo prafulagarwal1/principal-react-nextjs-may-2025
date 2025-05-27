@@ -1307,7 +1307,7 @@ const getBgColor = (category: IProduct["category"]) => {
 
 const ProductListItem = ({ product }: Props) => {
     return (
-        <div className="`flex flex-col w-full rounded-md shadow-md overflow-hidden border bg-white ${classes.category__container}`">
+        <div className={`flex flex-col w-full rounded-md shadow-md overflow-hidden border bg-white ${classes.category__container}`}>
             {/* Category Tag */}
             <div
                 className={`text-white text-sm px-3 py-1 ${
