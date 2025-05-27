@@ -16,7 +16,10 @@ export default function Error({ error, reset }: Props) {
             <h2>Something went wrong.</h2>
             <p>{error.message}</p>
             <button onClick={reset}>Try again</button>
-            <Link href="/">Go home</Link>
+
+            <div>
+                <Link href="/">Go home</Link>
+            </div>
         </div>
     );
 }

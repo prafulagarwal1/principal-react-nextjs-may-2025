@@ -1,6 +1,7 @@
 import ProductsList from "@/components/products-list/products-list";
 import { getProducts } from "@/data/services/products";
 import type { IProduct } from "@/types/Product";
+import { notFound } from "next/navigation";
 
 export const metadata = {
     title: "List of products",
@@ -22,7 +23,7 @@ export default async function ProductsPage() {
         //     products
         // } : GetProductsResponse = await getProducts();
 
-        const response = await fetch( `${process.env.NEXT_STORE_API_URL}/api/product`,
+        const response = await fetch( `${process.env.NEXT_STORE_API_URL}/api/products`,
             /*
             {
                 cache: 'force-cache'
@@ -36,8 +37,9 @@ export default async function ProductsPage() {
             products
         } : GetProductsResponse = await response.json();
 
+        // fetch API does not throw error on 404 response. So we need to check for success, and throw an error explicitly if not success.
         if ( !response.ok ) {
-            throw new Error( 'Unable o fetch products' );
+            throw new Error( 'Unable to fetch products' );
         }
 
         return <ProductsList count={count} page={page} products={products} />;
@@ -46,5 +48,7 @@ export default async function ProductsPage() {
         // return <div>Failed to load products. Please try again later.</div>;
 
         throw new Error("Failed to load products. Please try again later.");
+
+        // return notFound();
     }
 }
