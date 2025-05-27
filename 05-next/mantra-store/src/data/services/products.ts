@@ -13,6 +13,9 @@ export const getProducts = async (page: number = 1) => {
 
     const count = await Product.countDocuments();
 
+    // Reference: Mongoose docs - https://mongoosejs.com/docs/
+    // find is a Mongoose Model method. It returns a Query object.
+    // skip(), limit(), select() etc. are Query object methods
     const products = await Product.find()
         .skip((inferredPage - 1) * 10)
         .limit(10)
