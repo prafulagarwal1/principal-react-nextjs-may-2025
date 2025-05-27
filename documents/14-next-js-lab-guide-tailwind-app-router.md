@@ -828,8 +828,7 @@ const nextConfig: NextConfig = {
 -   **Static Site Generation (SSG)** — Data is fetched at **build time** and the result is cached and reused. This is the default behavior when using `fetch()` without options (i.e., `cache: 'force-cache'`).
 -   **Server-Side Rendering (SSR)** — Data is fetched on **every request**. This is enabled using `fetch()` with `{ cache: 'no-store' }` or `{ next: { revalidate: 0 } }`.
 -   **React Server Components (RSC)** — Components rendered on the server **without producing client-side JavaScript**. RSCs are streamed to the browser as a serialized React tree and are **not hydrated**, making them highly efficient.
-    **Important:**
--   RSC is **not a separate rendering strategy like SSG or SSR** — it's a rendering **model**. RSC is a _component model_, not a fetch/render timing strategy. RSCs can be static (SSG), cached, or dynamic (SSR-like).
+-   **Important:** RSC is **not a separate rendering strategy like SSG or SSR** — it's a rendering **model**. RSC is a _component model_, not a fetch/render timing strategy. RSCs can be static (SSG), cached, or dynamic (SSR-like).
 -   In the App Router, **RSC is the default rendering model** for all components that do not include `'use client'`.
 
 **NOTE**:
@@ -879,8 +878,8 @@ export default async function HomePage() {
 
 ### Rendering Legend
 
-○ (Static) prerendered as static content
-ƒ (Dynamic) server-rendered on demand
+- ○ (Static) prerendered as static content
+- ƒ (Dynamic) server-rendered on demand
 
 --
 
