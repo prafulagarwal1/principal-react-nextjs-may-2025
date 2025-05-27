@@ -1,0 +1,2 @@
+mongoimport --uri mongodb+srv://puranik:Mantra123%24@cluster0.duet2eg.mongodb.net/mantra --collection products --type json --file products.json
+mongoimport --uri mongodb+srv://puranik:Mantra123%24@cluster0.duet2eg.mongodb.net/mantra --collection users --type json --file users.json
