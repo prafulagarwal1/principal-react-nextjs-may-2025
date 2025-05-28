@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { IProduct } from "@/types/Product";
 import ProductListItem from "./item/item";
 import { useProducts } from '@/hooks/useProducts';
+import { useRouter, useSearchParams } from "next/navigation";
 
 type Props = {
     count: number;
@@ -12,14 +13,21 @@ type Props = {
 };
 
 const ProductsList = ( { products, count, page }: Props ) => {
-    const [actualPage, setActualPage] = useState(page);
     const [actualCount, setActualCount] = useState(count);
     const [actualProducts, setActualProducts] = useState(products);
 
     const [showError, setShowError] = useState(false);
 
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const pageParam = searchParams.get("page");
+
+    const num = parseInt(pageParam ?? "1", 10);
+    const actualPage = isNaN(num) ? 1 : num;
+
     const { data, isLoading, error } = useProducts(actualPage);
 
+    // NOTE: ref object is used to maintain data that is available across renders of a component
     const initialRender = useRef(true); // initialRender -> { current: true }
 
     useEffect(
@@ -36,6 +44,12 @@ const ProductsList = ( { products, count, page }: Props ) => {
 
     const totalPages = Math.ceil(actualCount / 10);
 
+    const updatePage = (newPage: number) => {
+        const newParams = new URLSearchParams(searchParams.toString());
+        newParams.set("page", String(newPage));
+        router.push(`?${newParams.toString()}`);
+    };
+
     return (
         <>
             <h1 className="text-3xl font-semibold mb-4">List of products</h1>
@@ -49,7 +63,7 @@ const ProductsList = ( { products, count, page }: Props ) => {
                         return (
                             <button
                                 key={pageNumber}
-                                onClick={() => setActualPage(pageNumber)}
+                                onClick={() => updatePage(pageNumber)}
                                 className={`px-4 py-2 border text-sm ${
                                     actualPage === pageNumber
                                         ? "bg-blue-600 text-white border-blue-600"

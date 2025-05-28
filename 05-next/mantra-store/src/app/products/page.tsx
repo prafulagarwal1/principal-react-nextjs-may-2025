@@ -52,6 +52,10 @@ const getProducts = async (fetchPage : number) => {
 // By default a page is rendered using SSG (we see later how to switch to SSR when using DB calls in place of external API calls using fetch())
 export default async function ProductsPage() {
     try {
+        // EXERCISE: How can we extract the query string parameters (like `page`) and use it here
+        // /products?page=2
+        // your code ....
+
         // SSG with React Query hydration
         const queryClient = new QueryClient();
 
