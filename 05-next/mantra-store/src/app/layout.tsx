@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Providers from "@/components/lib/providers/providers";
 
 // import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -30,10 +31,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`antialiased`}>
-        <MainNavigation />
-        <div className="max-w-screen-xl mx-auto mt-12 px-4">
-          {children}
-        </div>
+        <Providers>
+          <MainNavigation />
+          <div className="max-w-screen-xl mx-auto mt-12 px-4">
+            {children}
+          </div>
+        </Providers>
       </body>
     </html>
   );
