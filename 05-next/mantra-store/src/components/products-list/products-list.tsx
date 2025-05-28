@@ -25,6 +25,7 @@ const ProductsList = ( { products, count, page }: Props ) => {
     const num = parseInt(pageParam ?? "1", 10);
     const actualPage = isNaN(num) ? 1 : num;
 
+    // useProducts() calls TanStack's useQuery() internally and returns what useQuery returns
     const { data, isLoading, error } = useProducts(actualPage);
 
     // NOTE: ref object is used to maintain data that is available across renders of a component

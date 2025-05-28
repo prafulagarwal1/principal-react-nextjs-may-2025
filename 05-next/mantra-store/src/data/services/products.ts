@@ -31,3 +31,19 @@ export const getProducts = async (page: number = 1) => {
         products: mappedProducts,
     };
 };
+
+export const getProductById = async (_id: string) => {
+    const product = await Product.findById(_id);
+
+    const serializedProductReviews = product.reviews.map((review) => {
+        return {
+            ...review.toJSON({ flattenObjectIds: true }),
+            date: review.date.toString(),
+        };
+    });
+
+    return {
+        ...product.toJSON({ flattenObjectIds: true }),
+        reviews: serializedProductReviews,
+    };
+};
