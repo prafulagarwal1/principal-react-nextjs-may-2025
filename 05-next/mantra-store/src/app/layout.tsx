@@ -1,20 +1,9 @@
 import type { Metadata } from "next";
 import Providers from "@/components/lib/providers/providers";
 
-// import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
 import MainNavigation from "@/components/main-navigation/main-navigation";
-
-// const geistSans = Geist({
-//   variable: "--font-geist-sans",
-//   subsets: ["latin"],
-// });
-
-// const geistMono = Geist_Mono({
-//   variable: "--font-geist-mono",
-//   subsets: ["latin"],
-// });
 
 // metadata defaults / metadata shared among pages
 export const metadata: Metadata = {

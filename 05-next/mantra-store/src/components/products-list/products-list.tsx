@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { IProduct } from "@/types/Product";
 import ProductListItem from "./item/item";
-import { getProducts } from '@/services/products';
+import { useProducts } from '@/hooks/useProducts';
 
 type Props = {
     count: number;
@@ -16,32 +16,16 @@ const ProductsList = ( { products, count, page }: Props ) => {
     const [actualCount, setActualCount] = useState(count);
     const [actualProducts, setActualProducts] = useState(products);
 
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<Error | null>(null);
     const [showError, setShowError] = useState(false);
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            setLoading(true);
-            try {
-                // const {
-                //     message: { products, count },
-                // } = await getProducts(actualPage);
-                const { products, count } = await getProducts(actualPage);
-                setActualProducts(products);
-                setActualCount(count);
-                setError(null);
-                setShowError(false);
-            } catch (err) {
-                setError(err as Error);
-                setShowError(true);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const { data, isLoading, error } = useProducts(actualPage);
 
-        fetchProducts();
-    }, [actualPage]);
+    useEffect(() => {
+        if (actualPage !== page && data) {
+            setActualProducts(data.products);
+            setActualCount(data.count);
+        }
+    }, [actualPage, data, page]);
 
     const totalPages = Math.ceil(actualCount / 10);
 
@@ -73,7 +57,7 @@ const ProductsList = ( { products, count, page }: Props ) => {
             </div>
 
             {/* Loading Spinner */}
-            {loading && (
+            {isLoading && (
                 <div className="flex justify-center my-10">
                     <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600" />
                 </div>
