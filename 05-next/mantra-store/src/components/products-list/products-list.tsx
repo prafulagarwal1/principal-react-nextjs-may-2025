@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { IProduct } from "@/types/Product";
 import ProductListItem from "./item/item";
 import { useProducts } from '@/hooks/useProducts';
@@ -20,12 +20,19 @@ const ProductsList = ( { products, count, page }: Props ) => {
 
     const { data, isLoading, error } = useProducts(actualPage);
 
-    useEffect(() => {
-        if (actualPage !== page && data) {
-            setActualProducts(data.products);
-            setActualCount(data.count);
-        }
-    }, [actualPage, data, page]);
+    const initialRender = useRef(true); // initialRender -> { current: true }
+
+    useEffect(
+        () => {
+            if ((!initialRender.current || actualPage !== page) && data) {
+                setActualProducts(data.products);
+                setActualCount(data.count);
+            }
+
+            initialRender.current = false; // for further renders, this is false
+        },
+        [actualPage, data, page]
+    );
 
     const totalPages = Math.ceil(actualCount / 10);
 
