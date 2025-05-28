@@ -25,8 +25,10 @@ export const getProducts = async (page = 1): Promise<IGetProductsResponse> => {
         `${process.env.NEXT_PUBLIC_SITE_URL}/api/products?page=${page}`
     );
     */
+    console.log(`Making call in the frontend to ${process.env.NEXT_PUBLIC_STORE_API_URL}`);
+
     const res = await fetch(
-        `${process.env.NEXT_STORE_API_URL}/api/products?page=${page}`
+        `${process.env.NEXT_PUBLIC_STORE_API_URL}/api/products?page=${page}`
     );
 
     if (!res.ok) {

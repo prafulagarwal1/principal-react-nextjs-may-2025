@@ -23,13 +23,15 @@ export default async function ProductsPage() {
         //     products
         // } : GetProductsResponse = await getProducts();
 
-        const response = await fetch( `${process.env.NEXT_STORE_API_URL}/api/products`,
+        const response = await fetch( `${process.env.NEXT_PUBLIC_STORE_API_URL}/api/products`,
             /*
             {
                 cache: 'force-cache'
             }
             */
         );
+
+        console.log(`Making call in the backend to ${process.env.NEXT_PUBLIC_STORE_API_URL}`);
 
         const {
             count,
