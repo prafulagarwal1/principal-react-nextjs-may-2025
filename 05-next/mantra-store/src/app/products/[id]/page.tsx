@@ -41,7 +41,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
 }
 
-// By default dynamic pages (with dynamic path paramter like [id] are SR rendered)
+// equivalent of { next: { revalidate: 60 } } in DB call case
+// export const revalidate = 60;
+
+// By default dynamic pages (with dynamic path paramter like [id] are SSR rendered)
 // But, Instead of SSR rendering (request time), now this dynamic page would be constructed using SSG (at build time)
 // export async function generateStaticParams() {
 //     const ids = await getProductIds();
@@ -60,8 +63,18 @@ type GetProductsResponse = {
 };
 
 // From Mantra API server instead of DB
+// By default dynamic pages (with dynamic path paramter like [id] are SSR rendered)
+// But, Instead of SSR rendering (request time), now this dynamic page would be constructed using SSG (at build time)
 export async function generateStaticParams() {
-    const response = await fetch( `${process.env.NEXT_PUBLIC_STORE_API_URL}/api/products`);
+    // ISR
+    const response = await fetch(
+        `${process.env.NEXT_PUBLIC_STORE_API_URL}/api/products`,
+        {
+            next: {
+                revalidate: 60 * 60 // 1 hour
+            }
+        }
+    );
 
     const { products } : GetProductsResponse = await response.json();
 
