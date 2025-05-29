@@ -19,7 +19,6 @@ const ProductReviews = () => {
         return <p>No reviews yet. Be the first one to <span onClick={navigateToAddReview} style={{ textDecoration: 'underline' }}>add a review!</span></p>;
     }
 
-
     return (
         <div>
             <h2 className="text-xl font-semibold mb-4">Reviews</h2>
