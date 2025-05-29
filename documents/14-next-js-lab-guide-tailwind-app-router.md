@@ -2160,9 +2160,21 @@ export async function generateMetadata({
         description: product?.description ?? "",
     };
 }
+
+export default async function ProductLayout({ params, children }: Props) {
+    const { id } = await params;
+    const product: IProduct = await getProductById(id);
+
+    return (
+        <>
+            <ProductDetail product={product} productId={id} />
+            <div className="mt-6">{children}</div>
+        </>
+    );
+}
 ```
 
--   In `app/products/[id]/page.tsx`
+-   We make the following change in `app/products/[id]/page.tsx` - it now represents the `ProductReviewsPage` instead of `ProductDetailPage`. The `ProductDetail` component is now always rendered in the layout file above. 
 
 ```tsx
 import ProductReviews from "@/components/product-detail/product-reviews/product-reviews";
