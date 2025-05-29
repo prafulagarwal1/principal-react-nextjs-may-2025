@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Providers from "@/components/lib/providers/providers";
+import { getServerSession } from 'next-auth';
 
 import "./globals.css";
 
@@ -17,10 +18,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = getServerSession();
+
   return (
     <html lang="en">
       <body className={`antialiased`}>
-        <Providers>
+        <Providers session={session}>
           <MainNavigation />
           <div className="max-w-screen-xl mx-auto mt-12 px-4">
             {children}
