@@ -2,8 +2,8 @@ import ProductDetail from "@/components/product-detail/product-detail";
 import type { IProduct, IReview } from "@/types/Product";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { notFound } from "next/navigation";
-
+import { ProductProvider, ProductContextValue } from "@/context/product-context";
+// import { notFound } from "next/navigation";
 
 type Props = {
     params: { id: string };
@@ -94,10 +94,15 @@ export default async function ProductLayout({ params, children }: Props) {
     const { id } = await params;
     const product: IProduct = await getProductById(id);
 
+    const value : ProductContextValue = {
+        product,
+        productId: id,
+    };
+
     return (
-        <>
+        <ProductProvider value={value}>
             <ProductDetail product={product} productId={id} />
             <div className="mt-6">{children}</div>
-        </>
+        </ProductProvider>
     );
 }
