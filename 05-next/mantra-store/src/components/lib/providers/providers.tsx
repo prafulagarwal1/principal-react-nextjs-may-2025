@@ -2,11 +2,12 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SessionProvider } from 'next-auth/react';
+// import { Session } from 'next-auth';
 import { ReactNode, useState } from "react";
 
 interface Props {
     children: ReactNode,
-    session: any
+    session: any // @todo - Improve the type info
 }
 
 export default function Providers({ children, session }: Props) {
