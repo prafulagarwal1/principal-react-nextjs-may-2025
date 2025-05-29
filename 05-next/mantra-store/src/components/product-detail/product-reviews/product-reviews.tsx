@@ -2,19 +2,36 @@
 
 import { useProduct } from "@/context/product-context";
 import { IReview } from "@/types/Product";
+// import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const ProductReviews = () => {
     const { product } = useProduct();
+    const router = useRouter();
 
     const reviews = product?.reviews as IReview[];
 
+    const navigateToAddReview = () => {
+        router.push(`/products/${product?._id}/addreview`);
+    };
+
     if (!reviews || reviews.length === 0) {
-        return <p>No reviews yet. Be the first one to add a review!</p>;
+        return <p>No reviews yet. Be the first one to <span onClick={navigateToAddReview} style={{ textDecoration: 'underline' }}>add a review!</span></p>;
     }
+
 
     return (
         <div>
             <h2 className="text-xl font-semibold mb-4">Reviews</h2>
+
+            <button
+                onClick={navigateToAddReview}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded my-6"
+            >
+                Add Review
+            </button>
+
+            {/* <Link href={`./${product?._id}/addreview`}>Add a review</Link> */}
             <ul className="space-y-6">
                 {reviews.map((review) => (
                     <li key={review._id} className="flex items-start space-x-4">
