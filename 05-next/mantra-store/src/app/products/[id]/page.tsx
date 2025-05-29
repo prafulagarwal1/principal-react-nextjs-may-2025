@@ -1,8 +1,7 @@
-// import { getProductById, getProductIds } from "@/data/services/products";
-
-import ProductDetail from "@/components/product-detail/product-detail";
+// import { getProductById } from "@/data/services/products";
 import type { IProduct, IReview } from "@/types/Product";
-import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import ProductReviews from "@/components/product-detail/product-reviews/product-reviews";
 
 type Props = {
     params: { id: string };
@@ -31,68 +30,22 @@ const getProductById = async (id: string) => {
     };
 };
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+// in case of ISR (revalidate is exported), it runs periodically
+// in case product is not one of them generated at build-time, this function runs at request time! In case such a product exists, the page is shown, else not found page is shown
+export default async function ProductReviewsPage({ params }: Props) {
     const { id } = await params;
-    const product = await getProductById(id);
 
-    return {
-        title: product?.title ?? "Product details",
-        description: product?.description ?? "",
-    };
-}
+    let product : IProduct | null = null;
 
-// equivalent of { next: { revalidate: 60 } } in DB call case
-// export const revalidate = 60;
+    try {
+        product  = await getProductById(id);
+    } catch( error ) {
+        console.log( error );
 
-// By default dynamic pages (with dynamic path paramter like [id] are SSR rendered)
-// But, Instead of SSR rendering (request time), now this dynamic page would be constructed using SSG (at build time)
-// export async function generateStaticParams() {
-//     const ids = await getProductIds();
-
-//     // [ { id: '1234' }, { id: '2345' }, ... ]
-//     const idsMap = ids.map((id: number | string) => ({ id: String(id) }));
-
-//     return idsMap;
-// }
-
-
-type GetProductsResponse = {
-    count: number;
-    page: number;
-    products: IProduct[];
-};
-
-// From Mantra API server instead of DB
-// By default dynamic pages (with dynamic path paramter like [id] are SSR rendered)
-// But, Instead of SSR rendering (request time), now this dynamic page would be constructed using SSG (at build time)
-export async function generateStaticParams() {
-    // ISR
-    const response = await fetch(
-        `${process.env.NEXT_PUBLIC_STORE_API_URL}/api/products`,
-        {
-            next: {
-                revalidate: 60 * 60 // 1 hour
-            }
+        if (!product) {
+            return notFound();
         }
-    );
-
-    const { products } : GetProductsResponse = await response.json();
-
-    // fetch API does not throw error on 404 response. So we need to check for success, and throw an error explicitly if not success.
-    if ( !response.ok ) {
-        throw new Error( 'Unable to fetch products' );
     }
 
-    // [ { id: '1234' }, { id: '2345' }, ... ]
-    const idsMap = products.map(product => ({ id: String(product._id) }));
-
-    return idsMap;
-}
-
-export default async function ProductDetailPage({ params }: Props) {
-    const { id } = await params; // app/products/[id]/[action] -> { id: 'dswkjd2', action: 'edit' }
-
-    const product: IProduct = await getProductById(id);
-
-    return <ProductDetail productId={id} product={product} />;
+    return <ProductReviews />;
 }
