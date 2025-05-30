@@ -6,23 +6,23 @@
 ## Project queries and time slots
 Please fill queries and choose time slot from here - https://docs.google.com/spreadsheets/d/12H4C-cRhpkRwADdyduCaEHi7D1reUjjrJozX7ayEkF8/edit?usp=sharing
 
-### project groups
-#### Group 1
+### Project groups
+#### Group 1 - Weather app
 - Surya Dasari
 - Virendra Sihag
 - Nidhi Agrawal
 
-#### Group 2
+#### Group 2 - Video Catalog App
 - Sai Nithika Yakkali
 - Salil Palkar
 - Priyanshu Gupta
 
-#### Group 3
+#### Group 3 - GitHub Search App
 - Sanjeev Boppanapally
 - Praful Agarwal
 - Tejoy Vachharajani
 
-#### Group 4
+#### Group 4 - StackOverflow Search App
 - Shreyas Chele
 - Archit Garg
 - Prerit Rudrakar
