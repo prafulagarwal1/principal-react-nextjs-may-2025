@@ -3,6 +3,30 @@
 - May 19 - 30, 2025 (Mon - Fri)
 - 2:00 - 6:00 PM IST
 
+## Project queries and time slots
+Please fill queries and choose time slot from here - https://docs.google.com/spreadsheets/d/12H4C-cRhpkRwADdyduCaEHi7D1reUjjrJozX7ayEkF8/edit?usp=sharing
+
+### project groups
+#### Group 1
+- Surya Dasari
+- Virendra Sihag
+- Nidhi Agrawal
+
+#### Group 2
+- Sai Nithika Yakkali
+- Salil Palkar
+- Priyanshu Gupta
+
+#### Group 3
+- Sanjeev Boppanapally
+- Praful Agarwal
+- Tejoy Vachharajani
+
+#### Group 4
+- Shreyas Chele
+- Archit Garg
+- Prerit Rudrakar
+
 ## Videos on unit testing in React apps
 
 -   Find the starter project in [supplied-files/mantra-store-unit-testing](./supplied-files/mantra-store-unit-testing/). The accompanying guide can be found [here](./documents/09-unit-testing-react-mantra-store-react.md).
