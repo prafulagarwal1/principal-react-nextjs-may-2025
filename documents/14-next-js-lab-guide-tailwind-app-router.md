@@ -2845,6 +2845,19 @@ async function submitHandler(event: React.FormEvent<HTMLFormElement>) {
 <form onSubmit={submitHandler}>{/* for ui */}</form>
 ```
 
+- Also make sure the `button` within the form is a submit button
+```tsx
+<button
+    type="submit"
+    onClick={switchAuthModeHandler}
+    className="w-full text-blue-600 hover:underline text-sm"
+>
+    {isLogin
+        ? "Create new account"
+        : "Login with existing account"}
+</button>
+``` 
+
 -   With this a user should be able to create a new account
 
 ## Step 28: Create login and other API endpoints using Next Auth
