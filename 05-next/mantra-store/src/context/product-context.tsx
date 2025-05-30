@@ -1,12 +1,13 @@
 "use client";
 
-import { ReactNode } from "react";
+import { useState, ReactNode } from "react";
 import { createContext, useContext } from "react";
-import { IProduct } from "@/types/Product";
+import { IProduct, IReview } from "@/types/Product";
 
 export type ProductContextValue = {
-    product: IProduct | null;
+    product: IProduct;
     productId: string;
+    updateReviews: (reviews: IReview[]) => void;
 };
 
 export const ProductContext = createContext<ProductContextValue | null>(null);
@@ -26,11 +27,22 @@ export function ProductProvider({
     value,
 }: {
     children: ReactNode;
-    value: ProductContextValue;
+    value: Omit<ProductContextValue, 'updateReviews'>;
 }) {
-    return (
-        <ProductContext.Provider value={value}>
-            {children}
-        </ProductContext.Provider>
-    );
+    const [reviews, setReviews] = useState<IReview[]>(value.product.reviews);
+
+    const updateReviews = (newReviews: IReview[]) => {
+        setReviews(newReviews);
+    };
+
+    const valueWithUpdatedReviews = {
+        ...value, // copy over current context value (productId, product etc)
+        product: { // update the product with the new reviews
+            ...value.product,
+            reviews: reviews, // update to the latest array of reviews
+        },
+        updateReviews,
+    };
+
+    return <ProductContext.Provider value={valueWithUpdatedReviews}>{children}</ProductContext.Provider>;
 }

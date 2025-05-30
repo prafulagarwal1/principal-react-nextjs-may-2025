@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { register } from "@/services/auth";
+import { signIn, getSession } from "next-auth/react"
+import { useRouter } from "next/navigation";
 
 function AuthForm() {
+    const router = useRouter();
+
     const [isLogin, setIsLogin] = useState(true);
 
     const [username, setUsername] = useState("");
@@ -25,9 +29,51 @@ function AuthForm() {
                 setIsLogin(true);
                 return;
             }
+
+            // login
+            if (isLogin) {
+                // login
+                const result = await signIn("credentials", {
+                    redirect: false,
+                    email,
+                    password,
+                })
+
+                if (result?.ok && !result.error) {
+                    router.push("/products")
+                } else {
+                    alert("Login failed")
+                }
+            }
         } catch (error) {
             alert((error as Error).message);
         }
+    }
+
+    // prevent navigation to this page if session exists
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(
+        () => {
+            getSession().then((session) => {
+                if (session) {
+                    // bad but a temporray fix for router.push() giving problems
+                    // window.location.href = "/profile";
+                    router.push('/profile');
+                } else {
+                    setIsLoading(false);
+                }
+            });
+        },
+        []
+    );
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center min-h-screen px-4">
+                Loading...
+            </div>
+        );
     }
 
     return (
